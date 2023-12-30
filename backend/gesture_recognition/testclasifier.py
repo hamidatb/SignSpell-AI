@@ -4,6 +4,7 @@ import sys
 import os
 import pickle
 import numpy as np
+from collections import defaultdict
 
 def get_directory():
     # Getting the directory where this script file is located
@@ -30,10 +31,10 @@ def capture(model):
     mp_drawing_styles = mp.solutions.drawing_styles
     hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
-    labels_dict = {
-        0:"A",
-        1:"B",
-        2:"L"}
+    labels_dict = defaultdict()
+    
+    for i in range(1,27):
+        labels_dict[i] = chr(64+i)
     
     while True:
         data_loc = []
