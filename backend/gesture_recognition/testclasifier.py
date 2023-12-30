@@ -31,10 +31,7 @@ def capture(model):
     mp_drawing_styles = mp.solutions.drawing_styles
     hands = mp_hands.Hands(static_image_mode=True, min_detection_confidence=0.3)
 
-    labels_dict = defaultdict()
-    
-    for i in range(1,27):
-        labels_dict[i] = chr(64+i)
+    labels_dict = {i: chr(65 + i) for i in range(26)}
     
     while True:
         data_loc = []
@@ -68,9 +65,13 @@ def capture(model):
                     x_.append(x)
                     y_.append(y)
             
-            # Getting the corners of the rectangle containing the hand to keep things boxed in
-            x1, y1 = int(min(x_) * width)-10, int(min(y_) * height)-10
-            x2, y2 = int(max(x_) * width)-10, int(max(y_) * height)-10
+           
+            # Increasing the margin for the bounding box
+            margin_x = 20  
+            margin_y = 20  
+
+            x1, y1 = max(int(min(x_) * width) - margin_x, 0), max(int(min(y_) * height) - margin_y, 0)
+            x2, y2 = min(int(max(x_) * width) + margin_x, width), min(int(max(y_) * height) + margin_y, height)
 
             prediction = model.predict([np.asarray(data_loc)])
             predicted_charcter = labels_dict[int(prediction[0])]
