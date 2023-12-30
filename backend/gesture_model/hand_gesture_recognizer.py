@@ -6,8 +6,7 @@ import numpy as np
 import time
 import openai
 import sys
-from gesture_model import test_classifier 
-
+from test_classifier import get_directory, open_model
 
 def recognize_letter(model, target_letter):
     cap = cv2.VideoCapture(0)
@@ -75,10 +74,9 @@ def play_game(model):
     return feedback
 
 def main():
-    SCRIPT_DIR, DATA_DIR = test_classifier.get_directory()
-    model = test_classifier.open_model(SCRIPT_DIR, DATA_DIR)
+    SCRIPT_DIR, DATA_DIR = get_directory()
+    model = open_model(SCRIPT_DIR, DATA_DIR)
     play_game(model)
-
 
 if __name__ == "__main__":
     main()
