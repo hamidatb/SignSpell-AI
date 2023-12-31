@@ -16,12 +16,13 @@ def get_directory():
     
     return SCRIPT_DIR, DATA_DIR
 
-# Opening the pickle file.
+# Opening the model file.
 def open_model(SCRIPT_DIR, DATA_DIR):
     model_dict = pickle.load(open(DATA_DIR, "rb"))
     model = model_dict['model']
     return  model
 
+# Loading the users progress from their practices.
 def load_progress(file_path):
     """
     Loads the user's progress from a file.
@@ -34,6 +35,7 @@ def load_progress(file_path):
     else:
         return {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
 
+# Saving the users progress from their practices.
 def save_progress(progress, file_path):
     """
     Saving the user's progress in the practice mode to a file.
