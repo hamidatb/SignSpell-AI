@@ -183,7 +183,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
             print(f"{letter}      | {result} | {time_taken} seconds")
         total_correct = sum(1 for result, _ in marks.values() if result == "Correct")
         final_score = round((total_correct / len(marks)) * 100, 2)
-        print(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})")
+        print(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})\n")
     else:
         print("No full attempts were made.")
     # Save final progress

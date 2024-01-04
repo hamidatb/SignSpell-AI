@@ -34,7 +34,7 @@ def load_progress(progress_file: str) -> dict:
             save_progress(user_progress, progress_file)
     else:
         user_progress = {chr(65 + i): {'attempts': 0, 'correct': 0, 'times': []} for i in range(26)}
-
+    print(f"\n")
     return user_progress
 
 
@@ -45,10 +45,13 @@ def save_progress(progress, file_path) -> None:
 
 def practice_settings():
     default_settings = {"Time for each letter (seconds)":5,
-                        "Amount of letters to practice":5
-                        }
-    print(default_settings)
+                        "Amount of letters to practice":5}
+    print(f"\n")
+    for key, value in default_settings.items():
+        print(f"{key}:{value}")
+    print(f"\n")
     change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
+    print(f"\n")
     if change_settings == "y":
         while True:
             try:
