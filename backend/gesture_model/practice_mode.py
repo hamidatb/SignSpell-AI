@@ -92,7 +92,7 @@ def make_prediction(model, results, frame):
         return predicted_character
     return None
 
-def update_and_display(frame, target_letter, predicted_character):
+def update_and_display(frame, target_letter, predicted_character, amount_remaining):
     is_correct = predicted_character.lower() == target_letter.lower()
     # Shwoing the prediction and target letter on the frame
     cv2.putText(frame, f"Your are currently showing: {predicted_character}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
@@ -107,36 +107,37 @@ def update_and_display(frame, target_letter, predicted_character):
         feedback_color = (0, 0, 255)  # Red for incorrect feedback
 
     cv2.putText(frame, feedback_text, (50, 150), cv2.FONT_HERSHEY_COMPLEX, 1, feedback_color, 2)
+    cv2.putText(frame, f"Amount of letters remaining: {amount_remaining}", (100, 150), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
 def practice_loop(model, progress, file_path):
     cap, hands = initialize_camera()
 
-    if input("Would you like to see your starting progress? (y/n)").lower().strip() == "y":
-        print(progress)
-
-    # Added a flag to control the outer loop
+    # Adding a flag to control the outer loop (So the user can quit by pressing q)
     exit_flag = False
 
     while True:
         try:
-            amount_of_questions = int(input("How many letters would you like to practice this session?").lower().strip())
+            amount_of_letters = int(input("How many letters would you like to practice this session?").lower().strip())
+            time_wanted = int(input("How much time would you like for each letter?").lower().strip())
             break
         except:
-            print("Inavlid amount number. Please submit an integer")        
+            print("Inavlid amount of letter, or time wanted. Please only submit integer values.")      
     
 
-    for i in range(amount_of_questions):
+    for i in range(amount_of_letters):
         target_letter = select_letter(progress)
         print(f"Practice this letter: {target_letter}")
         start_time = time.time()
 
-        while time.time() - start_time < 5:  # 5-second limit for each letter
+        amount_remaining = amount_of_letters - 1
+
+        while time.time() - start_time < time_wanted:  # 5-second limit for each letter
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
             if predicted_character:
-                is_correct = update_and_display(frame, target_letter, predicted_character)
+                is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining)
                 
                 # Update progress after each attempt
                 if is_correct:
@@ -156,9 +157,7 @@ def practice_loop(model, progress, file_path):
     cap.release()
     cv2.destroyAllWindows()
 
-    # Display final progress
-    if input("Would you like to see your final progress? (y/n)").lower().strip() == "y":
-        print(progress)
+    print(progress)
 
 def main():
     SCRIPT_DIR, DATA_DIR = get_directory()
