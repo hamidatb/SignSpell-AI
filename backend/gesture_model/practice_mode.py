@@ -44,7 +44,6 @@ def capture_and_process_frame(cap, hands):
     results = hands.process(frame_rgb)
     return frame, results
 
-
 def make_prediction(model, results, frame):
     data_loc = []  # To store hand landmark data
     if results.multi_hand_landmarks:
@@ -96,6 +95,8 @@ def practice_loop(model, progress, file_path, settings):
     amount_of_letters = settings["Amount of letters to practice"]
     time_wanted = settings["Time for each letter (seconds)"]
 
+    marks = []
+
     for i in range(amount_of_letters):
         target_letter = select_letter(progress)
         print(f"Practice this letter: {target_letter}")
@@ -107,12 +108,19 @@ def practice_loop(model, progress, file_path, settings):
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
             if predicted_character:
+                end_time = time.time()
+                time_taken = round(end_time - start_time, 2)
                 is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining)
                 
                 # Update progress after each attempt
                 if is_correct:
                     progress[target_letter]['correct'] += 1
-                    
+                    progress[target_letter]['times'].append(time_taken)
+                    marks.append((target_letter, "Correct", time_taken))
+                    break  # Break out of the while loop once correct prediction is made
+                else:
+                    marks.append((target_letter, "Incorrect", time_taken))
+                
                 progress[target_letter]['attempts'] += 1
                 save_progress(progress, file_path)
 
@@ -127,12 +135,25 @@ def practice_loop(model, progress, file_path, settings):
     cap.release()
     cv2.destroyAllWindows()
 
-    print(progress)
+    # Display marksheet at the end
+    total_correct = sum(1 for mark in marks if mark[1] == "Correct")
+    total_attempts = len(marks)
+    final_score = round((total_correct / total_attempts) * 100, 2) if total_attempts > 0 else 0
+
+    print("\nMarksheet:")
+    print("Letter | Result    | Time Taken")
+    for mark in marks:
+        letter, result, time_taken = mark
+        print(f"{letter}      | {result} | {time_taken} seconds")
+    print(f"Final Score: {final_score}% (Correct: {total_correct} out of {total_attempts})")
+
+    # Save final progress
+    save_progress(progress, file_path)
 
 def main():
     SCRIPT_DIR, DATA_DIR = get_directory()
     model = open_model(SCRIPT_DIR, DATA_DIR)
-    settings = practice_settings
+    settings = practice_settings()
     progress_file = "user_progress.pkl"
     user_progress = load_progress(progress_file)
     practice_loop(model, user_progress, progress_file, settings)
