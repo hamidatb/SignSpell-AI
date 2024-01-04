@@ -26,9 +26,10 @@ def open_model(SCRIPT_DIR, DATA_DIR):
 def load_progress(file_path:str) -> dict:
     if os.path.exists(file_path):
         with open(file_path, 'rb') as file:
-            return pickle.load(file)
+            progress = pickle.load(file)
     else:
-        return {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
+        progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
+    return progress
 
 # Saving the users progress from their practices. 
 def save_progress(progress, file_path) -> None:
@@ -37,6 +38,8 @@ def save_progress(progress, file_path) -> None:
     """
     with open(file_path, 'wb') as file:
         pickle.dump(progress, file)
+
+    
 
 # Function to select the next letter to practice
 def select_letter(progress):
