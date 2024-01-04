@@ -58,33 +58,45 @@ def make_prediction(model, results, frame):
         return predicted_character
     return None
 
-def update_and_display(frame, target_letter, predicted_character, amount_remaining):
-    is_correct = predicted_character.lower() == target_letter.lower()
-    
-    # Display the prediction and target letter on the frame
-    cv2.putText(frame, f"You are currently showing: {predicted_character}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
-    cv2.putText(frame, f"Show this letter: {target_letter}", (50, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
-    
-    # Display feedback based on whether the prediction is correct
-    if is_correct:
-        feedback_text = "Correct!"
-        feedback_color = (0, 255, 0)  # Green for correct feedback
-    else:
-        feedback_text = "Incorrect!"
-        feedback_color = (0, 0, 255)  # Red for incorrect feedback
+def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining):
+    white = (255, 255, 255)
+    green = (0, 255, 0)
+    red = (0, 0, 255)
+    black = (0, 0, 0)
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    text_bottom_margin = 30  # Margin from the bottom of the frame
 
-    cv2.putText(frame, feedback_text, (50, 150), cv2.FONT_HERSHEY_COMPLEX, 1, feedback_color, 2)
+    # Clear previous text by drawing a filled rectangle
+    cv2.rectangle(frame, (0, frame.shape[0] - 100), (frame.shape[1], frame.shape[0]), black, -1)
+
+    # Check if a prediction was made
+    if predicted_character is not None:
+        is_correct = predicted_character.lower() == target_letter.lower()
+        feedback_text = "Correct!" if is_correct else "Incorrect!"
+        feedback_color = green if is_correct else red
+        cv2.putText(frame, f"Currently showing: {predicted_character}", (10, 30), font, 0.7, white, 2)
+    else:
+        is_correct = False
+        feedback_text = "No prediction"
+        feedback_color = red
+        cv2.putText(frame, "Currently showing: N/A", (10, 30), font, 0.7, white, 2)
+
+    # Display the target letter, feedback, and remaining amount at the top
+    cv2.putText(frame, f"Show this letter: {target_letter}", (10, 70), font, 0.7, white, 2)
+    cv2.putText(frame, feedback_text, (300, 70), font, 0.7, feedback_color, 2)
     
-    # Display "Amount of letters remaining" on the bottom left
-    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
-    
-    # Display "Press 'q' to quit" on the bottom right
+    # Display remaining amount and time at the bottom
+    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
+    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (300, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
+
+    # Display quit instruction on the bottom right
     quit_text = "Press 'q' to quit"
-    text_width, _ = cv2.getTextSize(quit_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
-    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
+    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
     
     cv2.imshow("Practice Mode", frame)
     return is_correct
+
 
 def practice_loop(model, progress, file_path, settings):
     cap, hands = initialize_camera()
@@ -95,58 +107,67 @@ def practice_loop(model, progress, file_path, settings):
     amount_of_letters = settings["Amount of letters to practice"]
     time_wanted = settings["Time for each letter (seconds)"]
 
-    marks = []
+    amount_remaining = amount_of_letters - 1
 
+    marks = {}
+    
     for i in range(amount_of_letters):
         target_letter = select_letter(progress)
         print(f"Practice this letter: {target_letter}")
         start_time = time.time()
 
-        amount_remaining = amount_of_letters - 1
+        while True:
+            time_elapsed = time.time() - start_time
+            time_remaining = time_wanted - time_elapsed
+            if time_remaining <= 0:
+                break  # Exit the loop if the time is up
 
-        while time.time() - start_time < time_wanted:  # 5-second limit for each letter
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
-            if predicted_character:
-                end_time = time.time()
-                time_taken = round(end_time - start_time, 2)
-                is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining)
-                
-                # Update progress after each attempt
-                if is_correct:
-                    progress[target_letter]['correct'] += 1
-                    progress[target_letter]['times'].append(time_taken)
-                    marks.append((target_letter, "Correct", time_taken))
-                    break  # Break out of the while loop once correct prediction is made
-                else:
-                    marks.append((target_letter, "Incorrect", time_taken))
-                
-                progress[target_letter]['attempts'] += 1
-                save_progress(progress, file_path)
+            update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('q'):
                 exit_flag = True
                 break
+            else:
+                if predicted_character:
+                    end_time = time.time()
+                    time_taken = round(end_time - start_time, 2)
+                    is_correct = (predicted_character.lower() == target_letter.lower())
+                    if is_correct:
+                        progress[target_letter]['correct'] += 1
+                        progress[target_letter]['times'].append(time_taken)
+                        marks[target_letter] = ("Correct", time_taken)
+                        break  # Break out of the while loop once correct prediction is made
+                    else:
+                        marks[target_letter] = ("Incorrect", time_taken)
+                else:
+                    if target_letter not in marks or marks[target_letter][0] != "Correct":
+                        marks[target_letter] = ("Incorrect", time_wanted)
+
+
+            progress[target_letter]['attempts'] += 1
 
         if exit_flag:
             break
+
+        amount_remaining -= 1
 
     # Clean up
     cap.release()
     cv2.destroyAllWindows()
 
-    # Display marksheet at the end
-    total_correct = sum(1 for mark in marks if mark[1] == "Correct")
-    total_attempts = len(marks)
-    final_score = round((total_correct / total_attempts) * 100, 2) if total_attempts > 0 else 0
-
-    print("\nMarksheet:")
-    print("Letter | Result    | Time Taken")
-    for mark in marks:
-        letter, result, time_taken = mark
-        print(f"{letter}      | {result} | {time_taken} seconds")
-    print(f"Final Score: {final_score}% (Correct: {total_correct} out of {total_attempts})")
-
+    if marks:  # Check if marks dictionary is not empty
+        print("\nMarksheet:")
+        print("Letter | Result    | Time Taken")
+        for letter, (result, time_taken) in sorted(marks.items()):
+            print(f"{letter}      | {result} | {time_taken} seconds")
+        total_correct = sum(1 for result, _ in marks.values() if result == "Correct")
+        final_score = round((total_correct / len(marks)) * 100, 2)
+        print(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})")
+    else:
+        print("No attempts were made.")
     # Save final progress
     save_progress(progress, file_path)
 
