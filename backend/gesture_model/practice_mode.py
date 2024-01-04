@@ -139,6 +139,7 @@ def practice_loop(model, progress, file_path):
     cv2.destroyAllWindows()
 
     # Display final progress
+    
     print("Final Progress:")
     print(progress)
 
