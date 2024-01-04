@@ -1,13 +1,13 @@
 import cv2
 import mediapipe as mp
 import os
-import pickle
 import numpy as np
 import time
 import sys
 import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
+from mode_settings import load_progress, save_progress, practice_settings
 
 
 # Getting the directory of this file and the model file.
@@ -18,38 +18,6 @@ def get_directory() -> str:
     DATA_DIR = os.path.join(SCRIPT_DIR, "model.p")
     
     return SCRIPT_DIR, DATA_DIR
-
-# Loading the users progress from their practices. 
-def load_progress(progress_file:str) -> dict:
-    if os.path.exists(progress_file):
-        reset_choice = input("You have previously existing progess.\nDo you want to reset your progress?\nEnter 'y' to reset, or 'n' to keep existing progress: ").strip().lower()
-        if reset_choice == 'y':
-            user_progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
-            save_progress(user_progress, progress_file)
-            print("Progress has been reset.")
-        elif reset_choice == 'n':
-            with open(progress_file, 'rb') as file:
-                user_progress = pickle.load(file)
-            print("Continuing with existing progress.")
-        else:
-            print("Invalid input. Continuing with existing progress.")
-            with open(progress_file, 'rb') as file:
-                user_progress = pickle.load(file)
-    else:
-        user_progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
-
-    if input("Would you like to see your progress? (y/n)").lower().strip() == "y":
-        print(user_progress)
-    return user_progress
-
-# Saving the users progress from their practices. 
-def save_progress(progress, file_path) -> None:
-    """
-    Note: Will have to decide how the progress data will be written and stored.
-    """
-    with open(file_path, 'wb') as file:
-        pickle.dump(progress, file)
-
 
 # Function to select the next letter to practice
 def select_letter(progress):
@@ -119,20 +87,14 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
-def practice_loop(model, progress, file_path):
+def practice_loop(model, progress, file_path, settings):
     cap, hands = initialize_camera()
 
     # Adding a flag to control the outer loop (So the user can quit by pressing q)
     exit_flag = False
 
-    while True:
-        try:
-            amount_of_letters = int(input("How many letters would you like to practice this session?").lower().strip())
-            time_wanted = int(input("How much time would you like for each letter?").lower().strip())
-            break
-        except:
-            print("Inavlid amount of letter, or time wanted. Please only submit integer values.")      
-    
+    amount_of_letters = settings["Amount of letters to practice"]
+    time_wanted = settings["Time for each letter (seconds)"]
 
     for i in range(amount_of_letters):
         target_letter = select_letter(progress)
@@ -170,9 +132,10 @@ def practice_loop(model, progress, file_path):
 def main():
     SCRIPT_DIR, DATA_DIR = get_directory()
     model = open_model(SCRIPT_DIR, DATA_DIR)
+    settings = practice_settings
     progress_file = "user_progress.pkl"
     user_progress = load_progress(progress_file)
-    practice_loop(model, user_progress, progress_file)
+    practice_loop(model, user_progress, progress_file, settings)
 
 if __name__ == "__main__":
     main()
