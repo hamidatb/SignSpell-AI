@@ -68,7 +68,6 @@ def get_letter_image(images_dir, target_letter):
 
     return letter_image
 
-
 def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
     box_color, text_color, correct_color, incorrect_color, font, display_correct = display_settings()
 
@@ -78,12 +77,13 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     
     if get_letter_image(images_dir, target_letter) is not None:
         # Resize image if necessary and put it on the frame
-        letter_image = cv2.resize(letter_image, (100, 100))
+        letter_image = cv2.resize(get_letter_image(images_dir, target_letter), (100, 100))
         frame[100:200, 100:200] = letter_image  # Adjust position as needed
 
     # Check if a prediction was made
     if predicted_character is not None:
         is_correct = predicted_character.lower() == target_letter.lower()
+        feedback_color = correct_color if is_correct else incorrect_color
         if display_correct and is_correct:
             # If the prediction is correct and we want to display the "Correct!" feedback:
             cv2.rectangle(frame, (400, 40), (690, 100), correct_color, -1)  # Draw a filled green rectangle
@@ -92,7 +92,6 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
         else:
             feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
             cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
-        feedback_color = correct_color if is_correct else incorrect_color
     else:
         is_correct = False
         feedback_text = "Accuracy: No prediction"
@@ -114,8 +113,6 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     cv2.imshow("Practice Mode", frame)
 
     return is_correct
-
-
 
 def practice_loop(model, progress, file_path, settings, images_dir):
     cap, hands = initialize_camera()
@@ -145,33 +142,30 @@ def practice_loop(model, progress, file_path, settings, images_dir):
             predicted_character = make_prediction(model, results, frame)
             is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
 
+            end_time = time.time()
+            time_taken = round(end_time - start_time, 2)
+                
             if is_correct:
                 # If the prediction is correct, display the green "Correct!" feedback for 1 second
                 update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
-                cv2.waitKey(3000)  # Wait for 3 seconds
+                
+    
+                progress[target_letter]['correct'] += 1
+                progress[target_letter]['times'].append(time_taken)
+                marks[target_letter] = ("Correct", time_taken)
+
+                cv2.waitKey(1000)  # Wait for 1s
+
                 break  # Then break out of the loop to move on to the next letter
+            else:
+    
+                marks[target_letter] = ("Incorrect", time_taken)
+
+            progress[target_letter]['attempts'] += 1
 
             if cv2.waitKey(1) and 0xFF == ord('q'):
                 exit_flag = True
                 break
-            else:
-                if predicted_character:
-                    end_time = time.time()
-                    time_taken = round(end_time - start_time, 2)
-                    is_correct = (predicted_character.lower() == target_letter.lower())
-                    if is_correct:
-                        progress[target_letter]['correct'] += 1
-                        progress[target_letter]['times'].append(time_taken)
-                        marks[target_letter] = ("Correct", time_taken)
-                        break  # Break out of the while loop once correct prediction is made
-                    else:
-                        marks[target_letter] = ("Incorrect", time_taken)
-                else:
-                    if target_letter not in marks or marks[target_letter][0] != "Correct":
-                        marks[target_letter] = ("Incorrect", time_wanted)
-
-
-            progress[target_letter]['attempts'] += 1
 
         if exit_flag:
             break
@@ -191,7 +185,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
         final_score = round((total_correct / len(marks)) * 100, 2)
         print(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})")
     else:
-        print("No attempts were made.")
+        print("No full attempts were made.")
     # Save final progress
     save_progress(progress, file_path)
 
