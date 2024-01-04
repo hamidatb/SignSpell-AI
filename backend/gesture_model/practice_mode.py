@@ -58,48 +58,58 @@ def make_prediction(model, results, frame):
         return predicted_character
     return None
 
-def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining):
-    white = (255, 255, 255)
-    green = (0, 255, 0)
-    red = (0, 0, 255)
-    black = (0, 0, 0)
+def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
+    # Define colors for the boxes and text
+    box_color = (255, 255, 255)  # White color for boxes
+    text_color = (0, 0, 0)  # Black color for text
+    correct_color = (0, 255, 0)  # Green color for correct feedback
+    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
     font = cv2.FONT_HERSHEY_SIMPLEX
-    text_bottom_margin = 30  # Margin from the bottom of the frame
 
-    # Clear previous text by drawing a filled rectangle
-    cv2.rectangle(frame, (0, frame.shape[0] - 100), (frame.shape[1], frame.shape[0]), black, -1)
-
+    # Draw boxes for visual design
+    cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
+    cv2.rectangle(frame, (310, 40), (600, 100), box_color, 2)  # Box for 'Accuracy'
+    
+    letter_image_path = os.path.join(images_dir, f"{target_letter}_FingerSpelling_Image.png")
+    letter_image = cv2.imread(letter_image_path)
+    if letter_image is not None:
+        # Resize image if necessary and put it on the frame
+        letter_image = cv2.resize(letter_image, (90, 90))
+        frame[10:100, 10:100] = letter_image  # Adjust position as needed
+    
     # Check if a prediction was made
     if predicted_character is not None:
         is_correct = predicted_character.lower() == target_letter.lower()
-        feedback_text = "Correct!" if is_correct else "Incorrect!"
-        feedback_color = green if is_correct else red
-        cv2.putText(frame, f"Currently showing: {predicted_character}", (10, 30), font, 0.7, white, 2)
+        feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
+        feedback_color = correct_color if is_correct else incorrect_color
     else:
         is_correct = False
-        feedback_text = "No prediction"
-        feedback_color = red
-        cv2.putText(frame, "Currently showing: N/A", (10, 30), font, 0.7, white, 2)
+        feedback_text = "Accuracy: No prediction"
+        feedback_color = incorrect_color
 
-    # Display the target letter, feedback, and remaining amount at the top
-    cv2.putText(frame, f"Show this letter: {target_letter}", (10, 70), font, 0.7, white, 2)
-    cv2.putText(frame, feedback_text, (300, 70), font, 0.7, feedback_color, 2)
+    # Put text on the frame
+    cv2.putText(frame, f"Show this letter: {target_letter}", (120, 80), font, 0.7, text_color, 2)
+    cv2.putText(frame, feedback_text, (320, 80), font, 0.7, feedback_color, 2)
     
     # Display remaining amount and time at the bottom
-    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
-    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (300, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
+    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 50), font, 0.7, text_color, 2)
+    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
-    # Display quit instruction on the bottom right
-    quit_text = "Press 'q' to quit"
-    text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
-    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - text_bottom_margin), font, 0.7, white, 2)
-    
+    # Display the instruction to put fingers closer together at the bottom center
+    put_together_text = "Put your fingers closer together"
+    text_width, _ = cv2.getTextSize(put_together_text, font, 0.7, 2)[0]
+    cv2.putText(frame, put_together_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
+
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
 
+
 def practice_loop(model, progress, file_path, settings):
     cap, hands = initialize_camera()
+
+    # Updating the path to the static directory where the images are stored
+    images_dir = os.path.join(os.path.dirname(file_path), 'static')
 
     # Adding a flag to control the outer loop (So the user can quit by pressing q)
     exit_flag = False
@@ -124,7 +134,7 @@ def practice_loop(model, progress, file_path, settings):
 
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
-            update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining)
+            update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
 
             key = cv2.waitKey(1)
             if key & 0xFF == ord('q'):
