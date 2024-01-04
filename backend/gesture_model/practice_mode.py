@@ -40,6 +40,9 @@ def load_progress(progress_file:str) -> dict:
                 user_progress = pickle.load(file)
     else:
         user_progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
+
+    if input("Would you like to see your progress? (y/n)").lower().strip() == "y":
+        print(user_progress)
     return user_progress
 
 # Saving the users progress from their practices. 
@@ -50,12 +53,11 @@ def save_progress(progress, file_path) -> None:
     with open(file_path, 'wb') as file:
         pickle.dump(progress, file)
 
-    
 
 # Function to select the next letter to practice
 def select_letter(progress):
     """
-    Selects the next letter for practice using a simple heuristic:
+    Selecting the next letter for practice using a simple heuristic:
     Less accuracy and fewer attempts increase the likelihood of selection.
     """
     letters = list(progress.keys())
