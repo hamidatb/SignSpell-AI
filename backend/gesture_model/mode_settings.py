@@ -4,6 +4,7 @@ This holds the information for both the quiz and practice mode settings.
 """
 import pickle
 import os
+import cv2
 
 
 # Loading the users progress from their practices. 
@@ -64,3 +65,15 @@ def practice_settings():
             except:
                 print("Try again. Please only submit integer values.")      
     return default_settings
+
+
+def display_settings():
+    # Define colors for the boxes and text
+    box_color = (255, 255, 255)  # White color for boxes
+    text_color = (0, 0, 0)  # Black color for text
+    correct_color = (0, 255, 0)  # Green color for correct feedback
+    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    display_correct = True
+
+    return box_color, text_color, correct_color, incorrect_color, font, display_correct

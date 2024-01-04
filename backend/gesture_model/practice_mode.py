@@ -8,16 +8,20 @@ import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import load_progress, save_progress, practice_settings
+from mode_settings import display_settings
 
 
-# Getting the directory of this file and the model file.
 def get_directory() -> str:
     # Getting the directory where this script file is located
     SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-    # Setting the directory where the data is stored, relative to this script file
-    DATA_DIR = os.path.join(SCRIPT_DIR, "model.p")
-    
-    return SCRIPT_DIR, DATA_DIR
+    MODEL_DIR = os.path.join(SCRIPT_DIR, "model.p")
+
+    # Go up one directory level to the 'backend' directory
+    BACKEND_DIR = os.path.dirname(SCRIPT_DIR)
+    # Now set the path to the 'static' directory
+    IMAGES_DIR = os.path.join(BACKEND_DIR, "static")
+        
+    return SCRIPT_DIR, MODEL_DIR, IMAGES_DIR
 
 # Function to select the next letter to practice
 def select_letter(progress):
@@ -58,29 +62,36 @@ def make_prediction(model, results, frame):
         return predicted_character
     return None
 
-def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
-    # Define colors for the boxes and text
-    box_color = (255, 255, 255)  # White color for boxes
-    text_color = (0, 0, 0)  # Black color for text
-    correct_color = (0, 255, 0)  # Green color for correct feedback
-    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
-    font = cv2.FONT_HERSHEY_SIMPLEX
-
-    # Draw boxes for visual design
-    cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
-    cv2.rectangle(frame, (310, 40), (600, 100), box_color, 2)  # Box for 'Accuracy'
-    
-    letter_image_path = os.path.join(images_dir, f"{target_letter}_FingerSpelling_Image.png")
+def get_letter_image(images_dir, target_letter):
+    letter_image_path = os.path.join(images_dir, f"{target_letter.upper()}.png")
     letter_image = cv2.imread(letter_image_path)
-    if letter_image is not None:
-        # Resize image if necessary and put it on the frame
-        letter_image = cv2.resize(letter_image, (90, 90))
-        frame[10:100, 10:100] = letter_image  # Adjust position as needed
+
+    return letter_image
+
+
+def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
+    box_color, text_color, correct_color, incorrect_color, font, display_correct = display_settings()
+
+    # Drawing the boxes for visual design
+    cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
+    cv2.rectangle(frame, (400, 40), (690, 100), box_color, 2)  # Box for 'Accuracy'
     
+    if get_letter_image(images_dir, target_letter) is not None:
+        # Resize image if necessary and put it on the frame
+        letter_image = cv2.resize(letter_image, (100, 100))
+        frame[100:200, 100:200] = letter_image  # Adjust position as needed
+
     # Check if a prediction was made
     if predicted_character is not None:
         is_correct = predicted_character.lower() == target_letter.lower()
-        feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
+        if display_correct and is_correct:
+            # If the prediction is correct and we want to display the "Correct!" feedback:
+            cv2.rectangle(frame, (400, 40), (690, 100), correct_color, -1)  # Draw a filled green rectangle
+            feedback_text = "Correct!"
+            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, text_color, 2)
+        else:
+            feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
+            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
         feedback_color = correct_color if is_correct else incorrect_color
     else:
         is_correct = False
@@ -88,37 +99,34 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
         feedback_color = incorrect_color
 
     # Put text on the frame
-    cv2.putText(frame, f"Show this letter: {target_letter}", (120, 80), font, 0.7, text_color, 2)
-    cv2.putText(frame, feedback_text, (320, 80), font, 0.7, feedback_color, 2)
+    cv2.putText(frame, f"Show this letter: {target_letter}", (60, 80), font, 0.7, text_color, 2)
+    cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
     
     # Display remaining amount and time at the bottom
     cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 50), font, 0.7, text_color, 2)
     cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
-    # Display the instruction to put fingers closer together at the bottom center
-    put_together_text = "Put your fingers closer together"
-    text_width, _ = cv2.getTextSize(put_together_text, font, 0.7, 2)[0]
-    cv2.putText(frame, put_together_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
+    # Display instructions to put fingers closer together at the bottom center of the frame
+    # put_together_text = "Put your fingers closer together"
+    # text_width, _ = cv2.getTextSize(put_together_text, font, 0.7, 2)[0]
+    # cv2.putText(frame, put_together_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
     cv2.imshow("Practice Mode", frame)
+
     return is_correct
 
 
 
-def practice_loop(model, progress, file_path, settings):
+def practice_loop(model, progress, file_path, settings, images_dir):
     cap, hands = initialize_camera()
-
-    # Updating the path to the static directory where the images are stored
-    images_dir = os.path.join(os.path.dirname(file_path), 'static')
 
     # Adding a flag to control the outer loop (So the user can quit by pressing q)
     exit_flag = False
 
     amount_of_letters = settings["Amount of letters to practice"]
     time_wanted = settings["Time for each letter (seconds)"]
-
+    
     amount_remaining = amount_of_letters - 1
-
     marks = {}
     
     for i in range(amount_of_letters):
@@ -131,13 +139,19 @@ def practice_loop(model, progress, file_path, settings):
             time_remaining = time_wanted - time_elapsed
             if time_remaining <= 0:
                 break  # Exit the loop if the time is up
+        
 
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
-            update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
+            is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
 
-            key = cv2.waitKey(1)
-            if key & 0xFF == ord('q'):
+            if is_correct:
+                # If the prediction is correct, display the green "Correct!" feedback for 1 second
+                update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
+                cv2.waitKey(3000)  # Wait for 3 seconds
+                break  # Then break out of the loop to move on to the next letter
+
+            if cv2.waitKey(1) and 0xFF == ord('q'):
                 exit_flag = True
                 break
             else:
@@ -182,12 +196,12 @@ def practice_loop(model, progress, file_path, settings):
     save_progress(progress, file_path)
 
 def main():
-    SCRIPT_DIR, DATA_DIR = get_directory()
-    model = open_model(SCRIPT_DIR, DATA_DIR)
+    SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
+    model = open_model(SCRIPT_DIR, MODEL_DIR)
     settings = practice_settings()
     progress_file = "user_progress.pkl"
     user_progress = load_progress(progress_file)
-    practice_loop(model, user_progress, progress_file, settings)
+    practice_loop(model, user_progress, progress_file, settings, IMAGES_DIR)
 
 if __name__ == "__main__":
     main()
