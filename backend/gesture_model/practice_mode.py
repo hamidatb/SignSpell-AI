@@ -87,9 +87,8 @@ def make_prediction(model, results, frame):
                 x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
                 data_loc.extend([x, y])
 
-        # Replace this with your model's prediction logic
         prediction = model.predict([np.asarray(data_loc)])
-        predicted_character = chr(65 + int(prediction[0]))  # Assuming your model predicts an integer
+        predicted_character = chr(65 + int(prediction[0]))  
         return predicted_character
     return None
 
