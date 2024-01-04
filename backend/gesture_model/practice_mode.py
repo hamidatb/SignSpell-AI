@@ -94,23 +94,40 @@ def make_prediction(model, results, frame):
 
 def update_and_display(frame, target_letter, predicted_character):
     is_correct = predicted_character.lower() == target_letter.lower()
-    # Display the prediction and target letter on the frame
-    cv2.putText(frame, predicted_character, (50, 50), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 3)
+    # Shwoing the prediction and target letter on the frame
+    cv2.putText(frame, f"Your are currently showing: {predicted_character}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
     cv2.putText(frame, f"Show this letter: {target_letter}", (50, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+    
+    # Display feedback based on whether the prediction is correct
+    if is_correct:
+        feedback_text = "Correct!"
+        feedback_color = (0, 255, 0)  # Green for correct feedback
+    else:
+        feedback_text = "Incorrect!"
+        feedback_color = (0, 0, 255)  # Red for incorrect feedback
+
+    cv2.putText(frame, feedback_text, (50, 150), cv2.FONT_HERSHEY_COMPLEX, 1, feedback_color, 2)
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
 def practice_loop(model, progress, file_path):
     cap, hands = initialize_camera()
 
-    # Display initial progress
-    print("Initial Progress:")
-    print(progress)
+    if input("Would you like to see your starting progress? (y/n)").lower().strip() == "y":
+        print(progress)
 
     # Added a flag to control the outer loop
     exit_flag = False
 
     while True:
+        try:
+            amount_of_questions = int(input("How many letters would you like to practice this session?").lower().strip())
+            break
+        except:
+            print("Inavlid amount number. Please submit an integer")        
+    
+
+    for i in range(amount_of_questions):
         target_letter = select_letter(progress)
         print(f"Practice this letter: {target_letter}")
         start_time = time.time()
@@ -124,6 +141,7 @@ def practice_loop(model, progress, file_path):
                 # Update progress after each attempt
                 if is_correct:
                     progress[target_letter]['correct'] += 1
+                    
                 progress[target_letter]['attempts'] += 1
                 save_progress(progress, file_path)
 
@@ -139,9 +157,8 @@ def practice_loop(model, progress, file_path):
     cv2.destroyAllWindows()
 
     # Display final progress
-    
-    print("Final Progress:")
-    print(progress)
+    if input("Would you like to see your final progress? (y/n)").lower().strip() == "y":
+        print(progress)
 
 def main():
     SCRIPT_DIR, DATA_DIR = get_directory()
