@@ -23,13 +23,24 @@ def open_model(SCRIPT_DIR, DATA_DIR):
     return model
 
 # Loading the users progress from their practices. 
-def load_progress(file_path:str) -> dict:
-    if os.path.exists(file_path):
-        with open(file_path, 'rb') as file:
-            progress = pickle.load(file)
+def load_progress(progress_file:str) -> dict:
+    if os.path.exists(progress_file):
+        reset_choice = input("You have previously existing progess.\nDo you want to reset your progress?\nEnter 'y' to reset, or 'n' to keep existing progress: ").strip().lower()
+        if reset_choice == 'y':
+            user_progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
+            save_progress(user_progress, progress_file)
+            print("Progress has been reset.")
+        elif reset_choice == 'n':
+            with open(progress_file, 'rb') as file:
+                user_progress = pickle.load(file)
+            print("Continuing with existing progress.")
+        else:
+            print("Invalid input. Continuing with existing progress.")
+            with open(progress_file, 'rb') as file:
+                user_progress = pickle.load(file)
     else:
-        progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
-    return progress
+        user_progress = {chr(65+i): {'attempts': 0, 'correct': 0} for i in range(26)}
+    return user_progress
 
 # Saving the users progress from their practices. 
 def save_progress(progress, file_path) -> None:
@@ -49,7 +60,7 @@ def select_letter(progress):
     """
     letters = list(progress.keys())
     # Calculate weights inversely proportional to accuracy and attempts
-    weights = [1 / (progress[letter]['correct'] / (progress[letter]['attempts'] + 1)) for letter in letters]
+    weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
     return random.choices(letters, weights)[0]
 
 def initialize_camera():
@@ -84,24 +95,31 @@ def update_and_display(frame, target_letter, predicted_character):
     is_correct = predicted_character.lower() == target_letter.lower()
     # Display the prediction and target letter on the frame
     cv2.putText(frame, predicted_character, (50, 50), cv2.FONT_HERSHEY_COMPLEX, 2, (255, 255, 255), 3)
-    cv2.putText(frame, f"Show letter: {target_letter}", (50, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
+    cv2.putText(frame, f"Show this letter: {target_letter}", (50, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
 def practice_loop(model, progress, file_path):
     cap, hands = initialize_camera()
 
+    # Display initial progress
+    print("Initial Progress:")
+    print(progress)
+
+    # Added a flag to control the outer loop
+    exit_flag = False
+
     while True:
         target_letter = select_letter(progress)
         print(f"Practice this letter: {target_letter}")
         start_time = time.time()
 
-        while time.time() - start_time < 10:  # 10-second limit for each letter
+        while time.time() - start_time < 5:  # 5-second limit for each letter
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character = make_prediction(model, results, frame)
             if predicted_character:
                 is_correct = update_and_display(frame, target_letter, predicted_character)
-
+                
                 # Update progress after each attempt
                 if is_correct:
                     progress[target_letter]['correct'] += 1
@@ -109,13 +127,19 @@ def practice_loop(model, progress, file_path):
                 save_progress(progress, file_path)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                exit_flag = True
                 break
 
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        if exit_flag:
             break
 
+    # Clean up
     cap.release()
     cv2.destroyAllWindows()
+
+    # Display final progress
+    print("Final Progress:")
+    print(progress)
 
 def main():
     SCRIPT_DIR, DATA_DIR = get_directory()
