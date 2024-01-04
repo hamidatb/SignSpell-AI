@@ -6,6 +6,9 @@ import numpy as np
 import time
 import sys
 import random
+from hand_gesture_recognizer import recognize_letter
+from test_classifier import open_model
+
 
 # Getting the directory of this file and the model file.
 def get_directory() -> str:
@@ -15,12 +18,6 @@ def get_directory() -> str:
     DATA_DIR = os.path.join(SCRIPT_DIR, "model.p")
     
     return SCRIPT_DIR, DATA_DIR
-
-# Opening the model file.
-def open_model(SCRIPT_DIR, DATA_DIR):
-    model_dict = pickle.load(open(DATA_DIR, "rb"))
-    model = model_dict['model']
-    return model
 
 # Loading the users progress from their practices. 
 def load_progress(progress_file:str) -> dict:
@@ -79,12 +76,14 @@ def capture_and_process_frame(cap, hands):
     results = hands.process(frame_rgb)
     return frame, results
 
+
 def make_prediction(model, results, frame):
     data_loc = []  # To store hand landmark data
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             for landmark in hand_landmarks.landmark:
-                x, y = int(landmark.x * frame.shape[1]), int(landmark.y * frame.shape[0])
+                x = landmark.x
+                y = landmark.y
                 data_loc.extend([x, y])
 
         prediction = model.predict([np.asarray(data_loc)])
@@ -94,8 +93,9 @@ def make_prediction(model, results, frame):
 
 def update_and_display(frame, target_letter, predicted_character, amount_remaining):
     is_correct = predicted_character.lower() == target_letter.lower()
-    # Shwoing the prediction and target letter on the frame
-    cv2.putText(frame, f"Your are currently showing: {predicted_character}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+    
+    # Display the prediction and target letter on the frame
+    cv2.putText(frame, f"You are currently showing: {predicted_character}", (50, 50), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
     cv2.putText(frame, f"Show this letter: {target_letter}", (50, 100), cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 2)
     
     # Display feedback based on whether the prediction is correct
@@ -107,7 +107,15 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
         feedback_color = (0, 0, 255)  # Red for incorrect feedback
 
     cv2.putText(frame, feedback_text, (50, 150), cv2.FONT_HERSHEY_COMPLEX, 1, feedback_color, 2)
-    cv2.putText(frame, f"Amount of letters remaining: {amount_remaining}", (100, 150), cv2.FONT_HERSHEY_COMPLEX, 1, (255, 255, 255), 2)
+    
+    # Display "Amount of letters remaining" on the bottom left
+    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    
+    # Display "Press 'q' to quit" on the bottom right
+    quit_text = "Press 'q' to quit"
+    text_width, _ = cv2.getTextSize(quit_text, cv2.FONT_HERSHEY_SIMPLEX, 0.7, 2)[0]
+    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+    
     cv2.imshow("Practice Mode", frame)
     return is_correct
 
