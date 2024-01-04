@@ -9,28 +9,33 @@ import os
 # Loading the users progress from their practices. 
 def load_progress(progress_file: str) -> dict:
     if os.path.exists(progress_file):
-        reset_choice = input("You have previously existing progress.\nDo you want to reset your progress or view previous marks?\nEnter 'r' to reset, 'v' to view, or any other key to continue: ").strip().lower()
+        with open(progress_file, 'rb') as file:
+            user_progress = pickle.load(file)
+
+        reset_choice = input("You have previously existing progress.\nDo you want to reset your progress, view previous marks, or continue with existing marks?\nEnter 'r' to reset, 'v' to view, or any other key to continue: ").strip().lower()
         if reset_choice == 'r':
-            user_progress = {chr(65+i): {'attempts': 0, 'correct': 0, 'times': []} for i in range(26)}
+            user_progress = {chr(65 + i): {'attempts': 0, 'correct': 0, 'times': []} for i in range(26)}
             save_progress(user_progress, progress_file)
             print("Progress has been reset.")
         elif reset_choice == 'v':
-            with open(progress_file, 'rb') as file:
-                user_progress = pickle.load(file)
             print("Previous Marks:")
             for letter, stats in user_progress.items():
+                # Ensure 'times' key exists
+                stats['times'] = stats.get('times', [])
                 print(f"Letter: {letter}, Attempts: {stats['attempts']}, Correct: {stats['correct']}, Times: {stats['times']}")
             user_progress = load_progress(progress_file)  # Reload to either reset or continue
         else:
-            with open(progress_file, 'rb') as file:
-                user_progress = pickle.load(file)
             print("Continuing with existing progress.")
+            # Ensure 'times' key exists for each letter
+            for letter in user_progress:
+                if 'times' not in user_progress[letter]:
+                    user_progress[letter]['times'] = []
+            save_progress(user_progress, progress_file)
     else:
-        user_progress = {chr(65+i): {'attempts': 0, 'correct': 0, 'times': []} for i in range(26)}
+        user_progress = {chr(65 + i): {'attempts': 0, 'correct': 0, 'times': []} for i in range(26)}
 
-    if input("Would you like to see your progress? (y/n)").lower().strip() == "y":
-        print(user_progress)
     return user_progress
+
 
 # Saving the users progress from their practices. 
 def save_progress(progress, file_path) -> None:
@@ -46,14 +51,14 @@ def practice_settings():
     if change_settings == "y":
         while True:
             try:
-                amount_of_letters = int(input("How many letters would you like to practice this session? :").lower().strip())
+                amount_of_letters = int(input("How many letters would you like to practice this session? : ").lower().strip())
                 default_settings["Amount of letters to practice"] = amount_of_letters
                 break
             except:
                 print("Try again. Please only submit integer values.")      
         while True:
             try:
-                time_wanted = int(input("How much time would you like for each letter? :").lower().strip())
+                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
                 default_settings["Time for each letter (seconds)"] = time_wanted
                 break
             except:
