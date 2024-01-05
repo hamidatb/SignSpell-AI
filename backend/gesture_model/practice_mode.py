@@ -105,10 +105,9 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 50), font, 0.7, text_color, 2)
     cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
-    # Display instructions to put fingers closer together at the bottom center of the frame
-    # put_together_text = "Put your fingers closer together"
-    # text_width, _ = cv2.getTextSize(put_together_text, font, 0.7, 2)[0]
-    # cv2.putText(frame, put_together_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
+    bottom_middle_text = "Press 'q' to end your session early"
+    text_width, _ = cv2.getTextSize(bottom_middle_text, font, 0.7, 2)[0]
+    cv2.putText(frame, bottom_middle_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
     cv2.imshow("Practice Mode", frame)
 
@@ -142,9 +141,14 @@ def practice_loop(model, progress, file_path, settings, images_dir):
             predicted_character = make_prediction(model, results, frame)
             is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
 
+            key = cv2.waitKey(1)
+            if key == ord('q'):
+                exit_flag = True
+                break
+
             end_time = time.time()
             time_taken = round(end_time - start_time, 2)
-                
+            
             if is_correct:
                 # If the prediction is correct, display the green "Correct!" feedback for 1 second
                 update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
@@ -158,16 +162,13 @@ def practice_loop(model, progress, file_path, settings, images_dir):
 
                 break  # Then break out of the loop to move on to the next letter
             else:
-    
                 marks[target_letter] = ("Incorrect", time_taken)
 
             progress[target_letter]['attempts'] += 1
 
-            if cv2.waitKey(1) and 0xFF == ord('q'):
-                exit_flag = True
-                break
 
         if exit_flag:
+            print("Exiting the practice loop.")
             break
 
         amount_remaining -= 1
