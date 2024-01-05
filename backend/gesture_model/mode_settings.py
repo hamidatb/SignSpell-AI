@@ -80,3 +80,41 @@ def display_settings():
     display_correct = True
 
     return box_color, text_color, correct_color, incorrect_color, font, display_correct
+
+def quiz_settings():
+    default_settings = {"Time for each letter (seconds)": 10,
+                        "Amount of letters to be quizzed on": 26,
+                        "Amount of words to be quizzed on":2}
+    print(f"\n")
+    for key, value in default_settings.items():
+        print(f"{key}:{value}")
+    print(f"\n")
+    change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
+    print(f"\n")
+    if change_settings == "y":
+        while True:
+            try:
+                amount_of_letters = int(input("How many letters would you like to practice this session? : ").lower().strip())
+                default_settings["Amount of letters to be quizzed on"] = amount_of_letters
+                break
+            except:
+                print("Try again. Please only submit integer values.")      
+        while True:
+            try:
+                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
+                default_settings["TTime for each letter (seconds)"] = time_wanted
+                break
+            except:
+                print("Try again. Please only submit integer values.")     
+        while True:
+            try:
+                amount_of_letters = int(input("How many words would you like to practice this session? : ").lower().strip())
+                default_settings["Amount of words to be quizzed on"] = amount_of_letters
+                break
+            except:
+                print("Try again. Please only submit integer values.")   
+    return default_settings
+
+def quiz_words():
+    words = ["test", "okay", "hello", "name"]
+    return words
