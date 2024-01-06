@@ -9,11 +9,154 @@ from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import load_progress, save_progress, practice_settings
 from mode_settings import display_settings, quiz_words
-from practice_mode import get_directory, initialize_camera, get_letter_image, capture_and_process_frame, make_prediction, update_and_display, select_letter
+
+def get_directory() -> str:
+    # Getting the directory where this script file is located
+    SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+    MODEL_DIR = os.path.join(SCRIPT_DIR, "model.p")
+
+    # Go up one directory level to the 'backend' directory
+    BACKEND_DIR = os.path.dirname(SCRIPT_DIR)
+    # Now set the path to the 'static' directory
+    IMAGES_DIR = os.path.join(BACKEND_DIR, "static")
+        
+    return SCRIPT_DIR, MODEL_DIR, IMAGES_DIR
+
+# Function to select the next letter to practice
+def select_letter(progress):
+    """
+    Selecting the next letter for practice using a simple heuristic:
+    Less accuracy and fewer attempts increase the likelihood of selection.
+    """
+    letters = list(progress.keys())
+    # Calculate weights inversely proportional to accuracy and attempts
+    weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
+    return random.choices(letters, weights)[0]
+
+def initialize_camera():
+    cap = cv2.VideoCapture(0)
+    mp_hands = mp.solutions.hands
+    hands = mp_hands.Hands(static_image_mode=True, max_num_hands=1, min_detection_confidence=0.5)
+    return cap, hands
+
+def capture_and_process_frame(cap, hands):
+    ret, frame = cap.read()
+    if not ret:
+        sys.exit("Failed to grab frame")
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    results = hands.process(frame_rgb)
+    return frame, results
+
+def make_prediction(model, results, frame):
+    data_loc = []  # To store hand landmark data
+    if results.multi_hand_landmarks:
+        for hand_landmarks in results.multi_hand_landmarks:
+            for landmark in hand_landmarks.landmark:
+                x = landmark.x
+                y = landmark.y
+                data_loc.extend([x, y])
+
+        prediction = model.predict([np.asarray(data_loc)])
+        predicted_character = chr(65 + int(prediction[0]))  
+        return predicted_character
+    return None
+
+def get_letter_image(images_dir, target_letter):
+    letter_image_path = os.path.join(images_dir, f"{target_letter.upper()}.png")
+    letter_image = cv2.imread(letter_image_path)
+
+    return letter_image
+
+def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
+    box_color, text_color, correct_color, incorrect_color, font, display_correct = display_settings()
+
+    # Drawing the boxes for visual design
+    cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
+
+    # Check if a prediction was made
+    if predicted_character is not None:
+        is_correct = predicted_character.lower() == target_letter.lower()
+        feedback_color = correct_color if is_correct else incorrect_color
+        if display_correct and is_correct:
+            # If the prediction is correct and we want to display the "Correct!" feedback:
+            cv2.rectangle(frame, (400, 40), (690, 100), correct_color, -1)  # Draw a filled green rectangle
+            feedback_text = "Correct!"
+            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, text_color, 2)
+        else:
+            feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
+            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
+    else:
+        is_correct = False
+        feedback_text = "Accuracy: No prediction"
+        feedback_color = incorrect_color
+
+    # Put text on the frame
+    cv2.putText(frame, f"Show this letter: {target_letter}", (60, 80), font, 0.7, text_color, 2)
+    cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
+    
+    # Display remaining amount and time at the bottom
+    cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 50), font, 0.7, text_color, 2)
+    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
+
+    bottom_middle_text = "Press 'q' to end your session early"
+    text_width, _ = cv2.getTextSize(bottom_middle_text, font, 0.7, 2)[0]
+    cv2.putText(frame, bottom_middle_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
+
+    cv2.imshow("Practice Mode", frame)
+
+    return is_correct
 
 
-def quiz_letters(model, progress, file_path, settings, images_dir):
-    pass
+
+def quiz_letters(model,progress, file_path, settings, images_dir):
+    cap, hands = initialize_camera()
+    total_attempts = 0
+    total_correct = 0
+    letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
+
+    try:
+        for i in range(settings["Amount of letters to practice"]):
+            target_letter = select_letter(progress)
+            print(f"Target letter to display: {target_letter}")
+            start_time = time.time()
+            letter_accuracies[target_letter]['attempts'] += 1
+            total_attempts += 1
+            
+            while True:
+                frame, results = capture_and_process_frame(cap, hands)
+                predicted_character = make_prediction(model, results, frame)
+
+                if predicted_character and predicted_character.lower() == target_letter.lower():
+                    letter_accuracies[target_letter]['correct'] += 1
+                    total_correct += 1
+                    break  # Move to next letter immediately upon correct prediction
+                
+                if (time.time() - start_time) > settings["Time for each letter (seconds)"]:
+                    break  # Move to next letter if time limit is exceeded
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    raise KeyboardInterrupt  # Use an exception to break out of the loop
+            
+            time.sleep(0.5)  # Short pause between letters (optional)
+    
+    except KeyboardInterrupt:
+        print("Quiz ended early by the user.")
+
+    # The finally block executes after the try and except block regardless of what happens!
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+        
+        print("Quiz Results:")
+        for letter, stats in letter_accuracies.items():
+            if stats['attempts'] > 0:
+                accuracy = (stats['correct'] / stats['attempts']) * 100
+                print(f"Letter {letter}: {accuracy:.2f}% accuracy")
+        
+        overall_accuracy = (total_correct / total_attempts) * 100 if total_attempts > 0 else 0
+        print(f"Overall accuracy: {overall_accuracy:.2f}%")
+
+        save_progress(progress, progress_file)
 
 
 def quiz_words(model, progress, file_path, settings, images_dir):
