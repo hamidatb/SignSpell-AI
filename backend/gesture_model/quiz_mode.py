@@ -106,8 +106,7 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
 
     return is_correct
 
-
-
+# Item 2. Saturday
 def quiz_letters(model,progress, file_path, settings, images_dir):
     cap, hands = initialize_camera()
     total_attempts = 0
@@ -158,18 +157,41 @@ def quiz_letters(model,progress, file_path, settings, images_dir):
 
         save_progress(progress, progress_file)
 
-
+# Item 1. Saturday
 def quiz_words(model, progress, file_path, settings, images_dir):
     cap, hands = initialize_camera()
-    total_attempts = 0
-    total_correct = 0
-    letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
+    # initialize the tracking of the score of this quiz
 
-    
-    for i in range(settings["Amount of letters to practice"]):
-        pass
+    # Things to ask before starting:
+    # 1. Would you like to view or reset your previous quiz marks?
+    # 2. Show the deault settings (3 words, 3 mins max with the ability to self end the quiz)
+    #    Ask if they'd like to view or change the default settings. 
+    #    2.a) How many words would you like to be quizzed on today (int)
+    #    2.b) What is the maximum time you'd like for this word quiz (int)
+    # 3. Use the same ANKI algorithmn to decided which words they will be quizzed on in order.
 
 
+    # The main quiz logic:
+    # (For each word in the range of the amount of words the user chose, this is what will happen,)
+    # (note: You need to keep track of the start and end time for each word and put in)
+    # 1. Show the letters of the word they're being quizzed on in red. As the ML algroithmr recognizes each 
+    #   letter, turn that letter green. Once all the letters are green, consider that word done and record the time
+    #   that it took on the marksheet. If any specific letter took a long time, record it in a systematic way
+    #   in the notes section of the marksheet.
+    # 2. They also need to be able to see a countdown timer on their screen.
+    # 3. They also need to see the mediapipe box for the hand gesture recognition on their screen as well.
+    # 4. Return the marksheet, the progress dict with this entry added (acompnaied with the date and time it was done), and the feedback marksheet stuff as a srting.
+    # 5. Add visuals to make this a very clean and good game.
+
+    # The quiz_letters duntion should work similarly but only quiz letters.
+
+# Item 3. Saturday
+def save_quiz_progress():
+    pass
+
+# Item 4. Saturday
+def load_quiz_progress():
+    pass
 
 
 def main():
@@ -178,7 +200,6 @@ def main():
     settings = practice_settings()
     progress_file = "user_progress.pkl"
     user_progress = load_progress(progress_file)
-    quiz_loop(model, user_progress, progress_file, settings, IMAGES_DIR)
 
 if __name__ == "__main__":
     main()
