@@ -206,11 +206,8 @@ def quiz_words(model, progress, file_path, settings, images_dir):
     # The quiz_letters duntion should work similarly but only quiz letters.
 
 # Item 3. Saturday
-def save_quiz_progress():
-    pass
-
-# Item 4. Saturday
-def load_quiz_progress():
+def type_of_quiz() -> str:
+    # Ask the user for the type of the quiz they'd like to do
     pass
 
 
@@ -219,8 +216,8 @@ def main():
     model = open_model(SCRIPT_DIR, MODEL_DIR)
     settings = practice_settings()
     progress_file = "user_progress.pkl"
-    letter_quiz_marks = load_letter_quiz(letter_progress_file)
-    word_quiz_marks = load_word_quiz(word_progess_file)
+
+    #Make a function to ask the user to pick the type of quiz they'd like to then, THEN return it.
 
 if __name__ == "__main__":
     main()

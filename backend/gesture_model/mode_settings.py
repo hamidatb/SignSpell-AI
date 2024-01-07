@@ -110,7 +110,10 @@ def save_word_quiz(word_quiz_marks):
         pickle.dump(word_quiz_marks,file)
 
 
-def present_user_options_for_marks(file_path:str, type_of_quiz:str):
+def present_user_options_for_marks(type_of_quiz:str):
+    run_data_dir = get_run_data_file_path()
+    file_path = os.path.join(run_data_dir, f"{type_of_quiz}_quiz_marks.pkl")
+
     if not os.path.exists(file_path):
         print(f"No previous quiz data found.")
         return None
