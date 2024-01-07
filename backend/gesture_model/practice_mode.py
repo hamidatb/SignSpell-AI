@@ -50,6 +50,10 @@ def capture_and_process_frame(cap, hands):
 
 def make_prediction(model, results, frame):
     data_loc = []  # To store hand landmark data
+    x_ = []
+    y_ = []
+
+    height, width, _  = frame.shape
     if results.multi_hand_landmarks:
         for hand_landmarks in results.multi_hand_landmarks:
             for landmark in hand_landmarks.landmark:
@@ -57,10 +61,15 @@ def make_prediction(model, results, frame):
                 y = landmark.y
                 data_loc.extend([x, y])
 
+                # These lists are being made to determine the bounding box limits
+                x_.append(x)
+                y_.append(y)
+
+
         prediction = model.predict([np.asarray(data_loc)])
         predicted_character = chr(65 + int(prediction[0]))  
-        return predicted_character
-    return None
+        return predicted_character, x_, y_, height, width
+    return None, None, None, None, None
 
 def get_letter_image(images_dir, target_letter):
     letter_image_path = os.path.join(images_dir, f"{target_letter.upper()}.png")
@@ -68,7 +77,7 @@ def get_letter_image(images_dir, target_letter):
 
     return letter_image
 
-def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
+def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir, x_, y_, height, width):
     box_color, text_color, correct_color, incorrect_color, font, display_correct = display_settings()
 
     # Drawing the boxes for visual design
@@ -82,6 +91,17 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
 
     # Check if a prediction was made
     if predicted_character is not None:
+         # Increasing the margin for the bounding box
+        margin_x = 20  
+        margin_y = 20  
+
+        x1, y1 = max(int(min(x_) * width) - margin_x, 0), max(int(min(y_) * height) - margin_y, 0)
+        x2, y2 = min(int(max(x_) * width) + margin_x, width), min(int(max(y_) * height) + margin_y, height)
+
+        
+        cv2.rectangle(frame, (x1, y1), (x2, y2), (0,0,0), 4)
+        cv2.putText(frame, predicted_character, (x1, y1-10), cv2.FONT_HERSHEY_PLAIN, 2, (0,0,0), 2, cv2.LINE_AA)
+
         is_correct = predicted_character.lower() == target_letter.lower()
         feedback_color = correct_color if is_correct else incorrect_color
         if display_correct and is_correct:
@@ -138,8 +158,8 @@ def practice_loop(model, progress, file_path, settings, images_dir):
         
 
             frame, results = capture_and_process_frame(cap, hands)
-            predicted_character = make_prediction(model, results, frame)
-            is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
+            predicted_character, x_, y_, height, width = make_prediction(model, results, frame)
+            is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir, x_, y_, height, width)
 
             key = cv2.waitKey(1)
             if key == ord('q'):
@@ -151,7 +171,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
             
             if is_correct:
                 # If the prediction is correct, display the green "Correct!" feedback for 1 second
-                update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
+                update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir, x_, y_, height, width)
                 
     
                 progress[target_letter]['correct'] += 1
@@ -189,6 +209,9 @@ def practice_loop(model, progress, file_path, settings, images_dir):
         print("No full attempts were made.")
     # Save final progress
     save_progress(progress, file_path)
+
+    print(marks)
+    return marks
 
 def main():
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()

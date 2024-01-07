@@ -22,7 +22,7 @@ def collect_pics(SCRIPT_DIR, DATA_DIR):
 
     # Define the number of classes and the number of images to capture for each class
     number_of_classes = 26
-    dataset_size = 50
+    dataset_size = 60
 
     # Start capturing video from the webcam (change the index if needed)
     cap = cv2.VideoCapture(0)
