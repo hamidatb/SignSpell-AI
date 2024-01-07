@@ -6,6 +6,54 @@ import pickle
 import os
 import cv2
 
+def display_settings():
+    # Define colors for the boxes and text
+    box_color = (255, 255, 255)  # White color for boxes
+    text_color = (0, 0, 0)  # Black color for text
+    correct_color = (0, 255, 0)  # Green color for correct feedback
+    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    display_correct = True
+
+    return box_color, text_color, correct_color, incorrect_color, font, display_correct
+
+def practice_settings():
+    default_settings = {"Time for each letter (seconds)":5,
+                        "Amount of letters to practice":5}
+    print(f"\n")
+    for key, value in default_settings.items():
+        print(f"{key}:{value}")
+    print(f"\n")
+    change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
+    print(f"\n")
+    if change_settings == "y":
+        while True:
+            try:
+                amount_of_letters = int(input("How many letters would you like to practice this session? : ").lower().strip())
+                default_settings["Amount of letters to practice"] = amount_of_letters
+                break
+            except:
+                print("Try again. Please only submit integer values.")      
+        while True:
+            try:
+                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
+                default_settings["Time for each letter (seconds)"] = time_wanted
+                break
+            except:
+                print("Try again. Please only submit integer values.")      
+    return default_settings
+
+def ensure_directory_exists(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def get_run_data_file_path():
+    current_script_dir = os.path.dirname(os.path.realpath(__file__))
+    run_script_dir = os.path.join(current_script_dir, "run_data")
+
+    ensure_directory_exists(run_script_dir)
+
+    return run_script_dir
 
 # Loading the users progress from their practices. 
 def load_progress(progress_file: str) -> dict:
@@ -37,84 +85,66 @@ def load_progress(progress_file: str) -> dict:
     print(f"\n")
     return user_progress
 
-
 # Saving the users progress from their practices. 
 def save_progress(progress, file_path) -> None:
     with open(file_path, 'wb') as file:
         pickle.dump(progress, file)
 
-def practice_settings():
-    default_settings = {"Time for each letter (seconds)":5,
-                        "Amount of letters to practice":5}
-    print(f"\n")
-    for key, value in default_settings.items():
-        print(f"{key}:{value}")
-    print(f"\n")
-    change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
-    print(f"\n")
-    if change_settings == "y":
-        while True:
-            try:
-                amount_of_letters = int(input("How many letters would you like to practice this session? : ").lower().strip())
-                default_settings["Amount of letters to practice"] = amount_of_letters
-                break
-            except:
-                print("Try again. Please only submit integer values.")      
-        while True:
-            try:
-                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
-                default_settings["Time for each letter (seconds)"] = time_wanted
-                break
-            except:
-                print("Try again. Please only submit integer values.")      
-    return default_settings
+def save_letter_quiz(letter_accuracies):
+    run_data_dir = get_run_data_file_path()
+
+    letter_quiz_file_path = os.path.join(run_data_dir, "letter_quiz_marks.pkl")
+
+    with open(letter_quiz_file_path, "wb") as file:
+        pickle.dump(letter_accuracies, file)
+
+    print(f"Your finger spell letter quiz marks have been saved to {letter_quiz_file_path}")
+    
+def save_word_quiz(word_quiz_marks):
+
+    run_data_dir = get_run_data_file_path()
+
+    word_quiz_file_path = os.path.join(run_data_dir, "word_quiz_marks.pkl")
+
+    with open(word_quiz_file_path, "wb") as file:
+        pickle.dump(word_quiz_marks,file)
 
 
-def display_settings():
-    # Define colors for the boxes and text
-    box_color = (255, 255, 255)  # White color for boxes
-    text_color = (0, 0, 0)  # Black color for text
-    correct_color = (0, 255, 0)  # Green color for correct feedback
-    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    display_correct = True
+def present_user_options_for_marks(file_path:str, type_of_quiz:str):
+    if not os.path.exists(file_path):
+        print(f"No previous quiz data found.")
+        return None
 
-    return box_color, text_color, correct_color, incorrect_color, font, display_correct
+    # Present the options to the user
+    print(f"Previous {type_of_quiz} quiz marks found. Choose an option:")
+    print("1. View past marks")
+    print("2. Clear past marks")
+    print("3. Continue with existing marks")
+    user_choice = input("Enter the number of your choice (1/2/3): ").strip()
 
-def quiz_settings():
-    default_settings = {"Time for each letter (seconds)": 10,
-                        "Amount of letters to be quizzed on": 26,
-                        "Amount of words to be quizzed on":2}
-    print(f"\n")
-    for key, value in default_settings.items():
-        print(f"{key}:{value}")
-    print(f"\n")
-    change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
-    print(f"\n")
-    if change_settings == "y":
-        while True:
-            try:
-                amount_of_letters = int(input("How many letters would you like to practice this session? : ").lower().strip())
-                default_settings["Amount of letters to be quizzed on"] = amount_of_letters
-                break
-            except:
-                print("Try again. Please only submit integer values.")      
-        while True:
-            try:
-                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
-                default_settings["TTime for each letter (seconds)"] = time_wanted
-                break
-            except:
-                print("Try again. Please only submit integer values.")     
-        while True:
-            try:
-                amount_of_letters = int(input("How many words would you like to practice this session? : ").lower().strip())
-                default_settings["Amount of words to be quizzed on"] = amount_of_letters
-                break
-            except:
-                print("Try again. Please only submit integer values.")   
-    return default_settings
+    if user_choice == '1':
+        # View past marks
+        with open(file_path, 'rb') as file:
+            quiz_marks = pickle.load(file)
+        print("Past marks:")
+        for key, value in quiz_marks.items():
+            print(f"{key}: {value}")
+        return quiz_marks
 
-def quiz_words():
-    words = ["test", "okay", "hello", "name"]
-    return words
+    elif user_choice == '2':
+        # Clear past marks by removing the file
+        os.remove(file_path)
+        print("Past marks cleared.")
+        return None
+
+    elif user_choice == '3':
+        # Continue with existing marks by loading them
+        with open(file_path, 'rb') as file:
+            quiz_marks = pickle.load(file)
+        return quiz_marks
+
+    else:
+        print("Invalid option selected. No action taken.")
+        return None
+    
+    # If this is equal to none, you have to use the save file to create a new file.

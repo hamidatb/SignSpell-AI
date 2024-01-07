@@ -7,8 +7,9 @@ import sys
 import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
-from mode_settings import load_progress, save_progress, practice_settings
+from mode_settings import load_progress, practice_settings, save_letter_quiz, save_word_quiz
 from mode_settings import display_settings, quiz_words
+
 
 def get_directory() -> str:
     # Getting the directory where this script file is located
@@ -21,17 +22,6 @@ def get_directory() -> str:
     IMAGES_DIR = os.path.join(BACKEND_DIR, "static")
         
     return SCRIPT_DIR, MODEL_DIR, IMAGES_DIR
-
-# Function to select the next letter to practice
-def select_letter(progress):
-    """
-    Selecting the next letter for practice using a simple heuristic:
-    Less accuracy and fewer attempts increase the likelihood of selection.
-    """
-    letters = list(progress.keys())
-    # Calculate weights inversely proportional to accuracy and attempts
-    weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
-    return random.choices(letters, weights)[0]
 
 def initialize_camera():
     cap = cv2.VideoCapture(0)
@@ -72,6 +62,12 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
 
     # Drawing the boxes for visual design
     cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
+    cv2.rectangle(frame, (400, 40), (690, 100), box_color, 2)  # Box for 'Accuracy'
+    
+    if get_letter_image(images_dir, target_letter) is not None:
+        # Resize image if necessary and put it on the frame
+        letter_image = cv2.resize(get_letter_image(images_dir, target_letter), (100, 100))
+        frame[100:200, 100:200] = letter_image  # Adjust position as needed
 
     # Check if a prediction was made
     if predicted_character is not None:
@@ -106,16 +102,34 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
 
     return is_correct
 
+# -> Need to update this function to work
+def select_quiz_letter(progress):
+    """
+    Selecting the next letter for practice using a simple heuristic:
+    Less accuracy and fewer attempts increase the likelihood of selection.
+    """
+    letters = list(progress.keys())
+    # Calculate weights inversely proportional to accuracy and attempts
+    weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
+    return random.choices(letters, weights)[0]
+
+# -> This function isn't actually written yet lol
+def select_quiz_word(progress):
+    pass
+
 # Item 2. Saturday
-def quiz_letters(model,progress, file_path, settings, images_dir):
+def quiz_letters(model,letter_quiz_file, settings, images_dir):
     cap, hands = initialize_camera()
     total_attempts = 0
     total_correct = 0
-    letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
 
+    # Intializing the scorescheet dictionary for all of the letters.
+    letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
+    
+    # Using a try, except, finally block to execute the the quiz letters logic.
     try:
         for i in range(settings["Amount of letters to practice"]):
-            target_letter = select_letter(progress)
+            target_letter = select_quiz_letter(letter_quiz_file)
             print(f"Target letter to display: {target_letter}")
             start_time = time.time()
             letter_accuracies[target_letter]['attempts'] += 1
@@ -125,11 +139,12 @@ def quiz_letters(model,progress, file_path, settings, images_dir):
                 frame, results = capture_and_process_frame(cap, hands)
                 predicted_character = make_prediction(model, results, frame)
 
+                # You will break if they show the correct character
                 if predicted_character and predicted_character.lower() == target_letter.lower():
                     letter_accuracies[target_letter]['correct'] += 1
                     total_correct += 1
-                    break  # Move to next letter immediately upon correct prediction
-                
+                    break  # Move to next letter immediately upon correct predicti
+
                 if (time.time() - start_time) > settings["Time for each letter (seconds)"]:
                     break  # Move to next letter if time limit is exceeded
 
@@ -143,9 +158,11 @@ def quiz_letters(model,progress, file_path, settings, images_dir):
 
     # The finally block executes after the try and except block regardless of what happens!
     finally:
+        # Closing the mediapipe cv2 windows
         cap.release()
         cv2.destroyAllWindows()
         
+        # letter accuracies is essentially just the quiz maks
         print("Quiz Results:")
         for letter, stats in letter_accuracies.items():
             if stats['attempts'] > 0:
@@ -155,7 +172,10 @@ def quiz_letters(model,progress, file_path, settings, images_dir):
         overall_accuracy = (total_correct / total_attempts) * 100 if total_attempts > 0 else 0
         print(f"Overall accuracy: {overall_accuracy:.2f}%")
 
-        save_progress(progress, progress_file)
+        save_letter_quiz(letter_accuracies)
+    
+    print(letter_accuracies)
+
 
 # Item 1. Saturday
 def quiz_words(model, progress, file_path, settings, images_dir):
@@ -199,7 +219,8 @@ def main():
     model = open_model(SCRIPT_DIR, MODEL_DIR)
     settings = practice_settings()
     progress_file = "user_progress.pkl"
-    user_progress = load_progress(progress_file)
+    letter_quiz_marks = load_letter_quiz(letter_progress_file)
+    word_quiz_marks = load_word_quiz(word_progess_file)
 
 if __name__ == "__main__":
     main()
