@@ -92,16 +92,18 @@ def save_progress(progress, file_path) -> None:
     with open(file_path, 'wb') as file:
         pickle.dump(progress, file)
 
-def save_letter_quiz(letter_accuracies):
+def save_letter_quiz(letter_accuracies, type_of_save):
     run_data_dir = get_run_data_file_path()
-
     letter_quiz_file_path = os.path.join(run_data_dir, "letter_quiz_marks.pkl")
 
-    with open(letter_quiz_file_path, "wb") as file:
-        pickle.dump(letter_accuracies, file)
-
-    print(f"Your finger spell letter quiz marks have been saved to {letter_quiz_file_path}")
+    if type_of_save == "reset_marks":
+        letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
     
+    with open(letter_quiz_file_path, "wb") as file:
+            pickle.dump(letter_accuracies, file)    
+    
+    print('Your letter quiz marks have been updated.')
+
 def save_word_quiz(word_quiz_marks):
 
     run_data_dir = get_run_data_file_path()
@@ -116,6 +118,12 @@ def save_word_quiz(word_quiz_marks):
 
 def present_user_options_for_marks(type_of_quiz:str):
     run_data_dir = get_run_data_file_path()
+
+    if type_of_quiz == "l":
+        type_of_quiz = "letter"
+    else:
+        type_of_quiz = "word"
+
     file_path = os.path.join(run_data_dir, f"{type_of_quiz}_quiz_marks.pkl")
 
     if not os.path.exists(file_path):
@@ -138,10 +146,11 @@ def present_user_options_for_marks(type_of_quiz:str):
             print(f"{key}: {value}")
         return quiz_marks
 
+    # Need to make 2 the same as if you just started a new file - essentially reset.
     elif user_choice == '2':
         # Clear past marks by removing the file
         os.remove(file_path)
-        print("Past marks cleared.")
+        
         return None
 
     elif user_choice == '3':

@@ -8,7 +8,7 @@ import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import load_progress, practice_settings, save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, quiz_words
+from mode_settings import display_settings, present_user_options_for_marks
 
 
 def get_directory() -> str:
@@ -118,7 +118,7 @@ def select_quiz_word(progress):
     pass
 
 # Item 2. Saturday
-def quiz_letters(model,letter_quiz_file, settings, images_dir):
+def quiz_letters(model,letter_quiz_marks, settings):
     cap, hands = initialize_camera()
     total_attempts = 0
     total_correct = 0
@@ -129,7 +129,7 @@ def quiz_letters(model,letter_quiz_file, settings, images_dir):
     # Using a try, except, finally block to execute the the quiz letters logic.
     try:
         for i in range(settings["Amount of letters to practice"]):
-            target_letter = select_quiz_letter(letter_quiz_file)
+            target_letter = select_quiz_letter(letter_quiz_marks)
             print(f"Target letter to display: {target_letter}")
             start_time = time.time()
             letter_accuracies[target_letter]['attempts'] += 1
@@ -176,9 +176,8 @@ def quiz_letters(model,letter_quiz_file, settings, images_dir):
     
     print(letter_accuracies)
 
-
 # Item 1. Wednesday
-def quiz_words(model, progress, file_path, settings, images_dir):
+def quiz_words(model, word_quiz_file, settings):
     cap, hands = initialize_camera()
     # initialize the tracking of the score of this quiz
 
@@ -224,9 +223,20 @@ def main():
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
     model = open_model(SCRIPT_DIR, MODEL_DIR)
     settings = practice_settings()
-    progress_file = "user_progress.pkl"
+    
 
-    #Make a function to ask the user to pick the type of quiz they'd like to then, THEN return it.
+    quiz_type = type_of_quiz()
+    if quiz_type == "l":
+        letter_quiz_marks =  present_user_options_for_marks(quiz_type)
+        
+        if letter_quiz_marks == None:
+            letter_quiz_marks = save_letter_quiz(letter_accuracies)
+        
+        quiz_letters(model,letter_quiz_file, settings)
+    elif quiz_type == "w":
+        quiz_words(model, word_quiz_file, settings)
+    elif quiz_type == "q":
+        sys.exit("Thank you for trying SignSpell.")
 
 if __name__ == "__main__":
     main()
