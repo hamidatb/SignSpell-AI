@@ -47,7 +47,9 @@ def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-def get_run_data_file_path():
+def get_run_data_file_path() -> str:
+    """ This gets the current script dir, gets the run script directory and ensures that it exists. 
+    It returns a file path as a stirng."""
     current_script_dir = os.path.dirname(os.path.realpath(__file__))
     run_script_dir = os.path.join(current_script_dir, "run_data")
 
@@ -109,6 +111,8 @@ def save_word_quiz(word_quiz_marks):
     with open(word_quiz_file_path, "wb") as file:
         pickle.dump(word_quiz_marks,file)
 
+    print(f"Your finger spell word quiz marks have been saved to {word_quiz_file_path}")
+
 
 def present_user_options_for_marks(type_of_quiz:str):
     run_data_dir = get_run_data_file_path()
@@ -150,4 +154,4 @@ def present_user_options_for_marks(type_of_quiz:str):
         print("Invalid option selected. No action taken.")
         return None
     
-    # If this is equal to none, you have to use the save file to create a new file.
+    # If this is equal to none, you have to use the save file to create a new file since the user didn't want the old file.
