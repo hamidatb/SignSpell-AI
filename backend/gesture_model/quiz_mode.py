@@ -102,7 +102,7 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
 
     return is_correct
 
-# -> Need to update this function to work
+# -> Need to update this function to work for the quiz mode logic.
 def select_quiz_letter(progress):
     """
     Selecting the next letter for practice using a simple heuristic:
@@ -177,7 +177,7 @@ def quiz_letters(model,letter_quiz_file, settings, images_dir):
     print(letter_accuracies)
 
 
-# Item 1. Saturday
+# Item 1. Wednesday
 def quiz_words(model, progress, file_path, settings, images_dir):
     cap, hands = initialize_camera()
     # initialize the tracking of the score of this quiz
@@ -205,10 +205,19 @@ def quiz_words(model, progress, file_path, settings, images_dir):
 
     # The quiz_letters duntion should work similarly but only quiz letters.
 
-# Item 3. Saturday
+# returns either "l", "w", or "q" -> q to quit, the rest are for the respective types.
 def type_of_quiz() -> str:
     # Ask the user for the type of the quiz they'd like to do
-    pass
+    question = "What type of quiz would you like to do?"
+    options = "Options: Letter quiz, word quiz, quit. (input l, w, or q): "
+    
+    while True:
+        choice = input(f"{question}\n{options}").strip().lower()
+        if choice != "l" or choice != "w" or choice != "q":
+            print("Please response with either 'l','w', or 'q'")
+        else:
+            break
+    return choice
 
 
 def main():
