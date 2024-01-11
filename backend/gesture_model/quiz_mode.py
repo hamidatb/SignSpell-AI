@@ -7,8 +7,8 @@ import sys
 import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
-from mode_settings import load_progress, practice_settings, save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, present_user_options_for_marks
+from mode_settings import save_letter_quiz, save_word_quiz
+from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
 
 
 def get_directory() -> str:
@@ -50,11 +50,6 @@ def make_prediction(model, results, frame):
         predicted_character = chr(65 + int(prediction[0]))  
         return predicted_character
     return None
-
-def get_letter_image(images_dir, target_letter):
-    letter_image_path = os.path.join(images_dir, f"{target_letter.upper()}.png")
-    letter_image = cv2.imread(letter_image_path)
-
     return letter_image
 
 def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
@@ -113,13 +108,9 @@ def select_quiz_letter(progress):
     weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
     return random.choices(letters, weights)[0]
 
-# -> This function isn't actually written yet lol
-def select_quiz_word(progress):
-    pass
-
-# Item 2. Saturday
 def quiz_letters(model,letter_quiz_marks, settings):
     cap, hands = initialize_camera()
+    
     total_attempts = 0
     total_correct = 0
 
@@ -128,15 +119,17 @@ def quiz_letters(model,letter_quiz_marks, settings):
     
     # Using a try, except, finally block to execute the the quiz letters logic.
     try:
-        for i in range(settings["Amount of letters to practice"]):
+        for i in range(settings["Amount of letters to be quizzed on"]):
             target_letter = select_quiz_letter(letter_quiz_marks)
+            frame, results = capture_and_process_frame(cap, hands)
+
             print(f"Target letter to display: {target_letter}")
             start_time = time.time()
             letter_accuracies[target_letter]['attempts'] += 1
             total_attempts += 1
             
             while True:
-                frame, results = capture_and_process_frame(cap, hands)
+    
                 predicted_character = make_prediction(model, results, frame)
 
                 # You will break if they show the correct character
@@ -172,11 +165,11 @@ def quiz_letters(model,letter_quiz_marks, settings):
         overall_accuracy = (total_correct / total_attempts) * 100 if total_attempts > 0 else 0
         print(f"Overall accuracy: {overall_accuracy:.2f}%")
 
-        save_letter_quiz(letter_accuracies)
+        save_letter_quiz(letter_accuracies, "update marks")
     
     print(letter_accuracies)
 
-# Item 1. Wednesday
+# Item 1. Thursday
 def quiz_words(model, word_quiz_file, settings):
     cap, hands = initialize_camera()
     # initialize the tracking of the score of this quiz
@@ -204,6 +197,10 @@ def quiz_words(model, word_quiz_file, settings):
 
     # The quiz_letters duntion should work similarly but only quiz letters.
 
+# -> This function isn't actually written yet lol
+def select_quiz_word(progress):
+    pass
+
 # returns either "l", "w", or "q" -> q to quit, the rest are for the respective types.
 def type_of_quiz() -> str:
     # Ask the user for the type of the quiz they'd like to do
@@ -212,31 +209,37 @@ def type_of_quiz() -> str:
     
     while True:
         choice = input(f"{question}\n{options}").strip().lower()
-        if choice != "l" or choice != "w" or choice != "q":
+        if choice not in ("l","w","q"):
             print("Please response with either 'l','w', or 'q'")
         else:
             break
     return choice
 
-
 def main():
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
     model = open_model(SCRIPT_DIR, MODEL_DIR)
-    settings = practice_settings()
-    
 
     quiz_type = type_of_quiz()
     if quiz_type == "l":
+        quiz_settings = letter_quiz_settings()
         letter_quiz_marks =  present_user_options_for_marks(quiz_type)
         
         if letter_quiz_marks == None:
-            letter_quiz_marks = save_letter_quiz(letter_accuracies)
+            letter_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
         
-        quiz_letters(model,letter_quiz_file, settings)
+        quiz_letters(model,letter_quiz_marks, quiz_settings)
+
     elif quiz_type == "w":
-        quiz_words(model, word_quiz_file, settings)
+        quiz_settings = word_quiz_settings()
+        word_quiz_marks =  present_user_options_for_marks(quiz_type)
+        
+        if word_quiz_marks == None:
+            word_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
+        
+        quiz_words(model, word_quiz_marks, quiz_settings)
+
     elif quiz_type == "q":
-        sys.exit("Thank you for trying SignSpell.")
+        sys.exit("Thank you for trying SignSpell!")
 
 if __name__ == "__main__":
     main()
