@@ -8,7 +8,9 @@ import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
+from mode_settings import display_settings, present_user_options_for_marks, word_quiz_settings
+from mode_settings import letter_quiz_settings
+from practice_mode import get_letter_image
 
 
 def get_directory() -> str:

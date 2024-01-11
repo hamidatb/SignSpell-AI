@@ -43,6 +43,34 @@ def practice_settings():
                 print("Try again. Please only submit integer values.")      
     return default_settings
 
+def letter_quiz_settings():
+    default_settings = {"Time for each letter (seconds)":5,
+                        "Amount of letters to be quizzed on":5}
+    print(f"\n")
+    for key, value in default_settings.items():
+        print(f"{key}: {value}\n")
+    change_settings = input("Would you like to change any of the default quiz settings? (y/n): ").strip().lower()
+    print(f"\n")
+    if change_settings == "y":
+        while True:
+            try:
+                amount_of_letters = int(input("How many letters would you like to be quizzed on this session? : ").lower().strip())
+                default_settings["Amount of letters to be quizzed on"] = amount_of_letters
+                break
+            except:
+                print("Try again. Please only submit integer values.")      
+        while True:
+            try:
+                time_wanted = int(input("How much time would you like for each letter? : ").lower().strip())
+                default_settings["Time for each letter (seconds)"] = time_wanted
+                break
+            except:
+                print("Try again. Please only submit integer values.")      
+    return default_settings
+
+def word_quiz_settings():
+    pass
+
 def ensure_directory_exists(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -96,30 +124,33 @@ def save_letter_quiz(letter_accuracies, type_of_save):
     run_data_dir = get_run_data_file_path()
     letter_quiz_file_path = os.path.join(run_data_dir, "letter_quiz_marks.pkl")
 
-    if type_of_save == "reset_marks":
+    if type_of_save == "reset marks" or letter_accuracies == None:
         letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
     
     with open(letter_quiz_file_path, "wb") as file:
             pickle.dump(letter_accuracies, file)    
     
     print('Your letter quiz marks have been updated.')
+    return letter_accuracies
 
-def save_word_quiz(word_quiz_marks):
+def save_word_quiz(word_quiz_marks, type_of_save):
 
     run_data_dir = get_run_data_file_path()
-
     word_quiz_file_path = os.path.join(run_data_dir, "word_quiz_marks.pkl")
+
+    if type_of_save == "reset_marks":
+        letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
 
     with open(word_quiz_file_path, "wb") as file:
         pickle.dump(word_quiz_marks,file)
 
     print(f"Your finger spell word quiz marks have been saved to {word_quiz_file_path}")
-
+    return word_quiz_marks
 
 def present_user_options_for_marks(type_of_quiz:str):
     run_data_dir = get_run_data_file_path()
 
-    if type_of_quiz == "l":
+    if type_of_quiz in ("l", "letter"):
         type_of_quiz = "letter"
     else:
         type_of_quiz = "word"
