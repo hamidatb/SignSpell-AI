@@ -11,6 +11,6 @@ Hello! I'm currently developing an interactive web-based platform that's designe
 
 ## Technology Stack
 - **Frontend**: I'm considering HTML, CSS, JavaScript, and potentially a framework like React or Angular.
-- **Backend**: The backend is being developed in Python, using Flask. I'm exploring OpenCV or TensorFlow for gesture recognition.
+- **Backend**: The backend is being developed in Python, using Flask. I'm using OpenCV gesture recognition.
 - **APIs**: Integrating with OpenAI's GPT-4 API for an enhanced learning experience.
-- **Database**: I'll be using either SQL (like PostgreSQL) or NoSQL (like MongoDB) for managing user data.
+- **Database**: I am using SQL for managing user data.

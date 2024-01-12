@@ -234,7 +234,7 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
             while current_index < len(target_word):
                 frame, results = capture_and_process_frame(cap, hands)
                 predicted_character = make_prediction(model, results, frame)
-                time_remaining = word_quiz_settings["Time for each letter (seconds)"] - (time.time() - start_time)
+                time_remaining = word_quiz_settings["Time for each word (seconds)"] - (time.time() - start_time)
 
                 # Display the word and check the prediction
                 is_correct = update_and_display_word(frame, target_word, current_index, predicted_character, time_remaining, images_dir)
@@ -242,6 +242,7 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
                 if is_correct:
                     current_index += 1  # Move to the next letter if correct
 
+                # Allowing the user to press q to break out of the program by pressing q to force an exit.
                 if time_remaining <= 0 or cv2.waitKey(1) & 0xFF == ord('q'):
                     break  # Exit if time's up or 'q' is pressed
 
