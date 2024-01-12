@@ -8,8 +8,7 @@ import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, present_user_options_for_marks
-from mode_settings import letter_quiz_settings, word_quiz_settings
+from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
 from practice_mode import get_letter_image
 
 
@@ -309,13 +308,13 @@ def main():
         quiz_letters(model, letter_quiz_marks, letter_quiz_settings, IMAGES_DIR)
 
     elif quiz_type == "w":
-        word_quiz_settings = word_quiz_settings()
+        w_quiz_settings = word_quiz_settings()
         word_quiz_marks =  present_user_options_for_marks(quiz_type)
         
         if word_quiz_marks == None:
             word_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
         
-        quiz_words(model, word_quiz_marks,word_quiz_settings, IMAGES_DIR)
+        quiz_words(model, word_quiz_marks,w_quiz_settings, IMAGES_DIR)
 
     elif quiz_type == "q":
         sys.exit("Thank you for trying SignSpell!")
