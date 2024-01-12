@@ -8,8 +8,8 @@ import random
 from hand_gesture_recognizer import recognize_letter
 from test_classifier import open_model
 from mode_settings import save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, present_user_options_for_marks, word_quiz_settings
-from mode_settings import letter_quiz_settings
+from mode_settings import display_settings, present_user_options_for_marks
+from mode_settings import letter_quiz_settings, word_quiz_settings
 from practice_mode import get_letter_image
 
 
@@ -55,51 +55,88 @@ def make_prediction(model, results, frame):
     return letter_image
 
 def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
-    box_color, text_color, correct_color, incorrect_color, font, display_correct = display_settings()
-
-    # Drawing the boxes for visual design
-    cv2.rectangle(frame, (10, 40), (300, 100), box_color, 2)  # Box for 'Show this letter'
-    cv2.rectangle(frame, (400, 40), (690, 100), box_color, 2)  # Box for 'Accuracy'
+    # Define colors for the boxes and text
+    box_color = (255, 255, 255)  # White color for boxes
+    text_color = (0, 0, 0)  # Black color for text
+    correct_color = (0, 255, 0)  # Green color for correct feedback
+    incorrect_color = (0, 0, 255)  # Red color for incorrect feedback
+    font = cv2.FONT_HERSHEY_SIMPLEX
     
-    if get_letter_image(images_dir, target_letter) is not None:
-        # Resize image if necessary and put it on the frame
-        letter_image = cv2.resize(get_letter_image(images_dir, target_letter), (100, 100))
-        frame[100:200, 100:200] = letter_image  # Adjust position as needed
-
     # Check if a prediction was made
     if predicted_character is not None:
         is_correct = predicted_character.lower() == target_letter.lower()
+        feedback_text = "Correct!" if is_correct else "Incorrect!"
         feedback_color = correct_color if is_correct else incorrect_color
-        if display_correct and is_correct:
-            # If the prediction is correct and we want to display the "Correct!" feedback:
-            cv2.rectangle(frame, (400, 40), (690, 100), correct_color, -1)  # Draw a filled green rectangle
-            feedback_text = "Correct!"
-            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, text_color, 2)
-        else:
-            feedback_text = f"Accuracy: {'Correct!' if is_correct else 'Incorrect!'}"
-            cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
+
+        # Display feedback for a correct prediction
+        if is_correct:
+            # Fill the rectangle with green color
+            cv2.rectangle(frame, (0, 0), (frame.shape[1], frame.shape[0]), correct_color, cv2.FILLED)
+            cv2.putText(frame, feedback_text, (frame.shape[1] // 2 - 100, frame.shape[0] // 2),
+                        font, 1, text_color, 2)
+            cv2.imshow("Quiz Mode", frame)
+            cv2.waitKey(1000)  # Wait for 1 second
+            return is_correct
     else:
         is_correct = False
-        feedback_text = "Accuracy: No prediction"
+        feedback_text = "No prediction"
         feedback_color = incorrect_color
 
     # Put text on the frame
-    cv2.putText(frame, f"Show this letter: {target_letter}", (60, 80), font, 0.7, text_color, 2)
-    cv2.putText(frame, feedback_text, (450, 80), font, 0.7, feedback_color, 2)
+    cv2.putText(frame, f"Show this letter: {target_letter}", (10, 80), font, 0.7, text_color, 2)
+    cv2.putText(frame, feedback_text, (300, 80), font, 0.7, feedback_color, 2)
     
     # Display remaining amount and time at the bottom
     cv2.putText(frame, f"Amount remaining: {amount_remaining}", (10, frame.shape[0] - 50), font, 0.7, text_color, 2)
-    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
+    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (300, frame.shape[0] - 50), font, 0.7, text_color, 2)
 
-    bottom_middle_text = "Press 'q' to end your session early"
-    text_width, _ = cv2.getTextSize(bottom_middle_text, font, 0.7, 2)[0]
-    cv2.putText(frame, bottom_middle_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
-
-    cv2.imshow("Practice Mode", frame)
+    # Display instruction on the bottom right
+    quit_text = "Press 'q' to quit"
+    text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
+    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 20), font, 0.7, text_color, 2)
+    
+    cv2.imshow("Quiz Mode", frame)
 
     return is_correct
 
-# -> Need to update this function to work for the quiz mode logic.
+def update_and_display_word(frame, target_word, current_index, predicted_character, time_remaining, images_dir):
+    box_color = (255, 255, 255)  # White color for boxes
+    text_color = (0, 0, 0)       # Black color for text
+    correct_color = (0, 255, 0)  # Green color for correct feedback
+    incorrect_color = (0, 0, 255)# Red color for incorrect feedback
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    letter_colors = []
+
+    # Initialize letter colors based on current progress
+    for i in range(len(target_word)):
+        if i < current_index:
+            # Letters before the current index are considered correct
+            letter_colors.append(correct_color)
+        elif i == current_index and predicted_character and predicted_character.lower() == target_word[i].lower():
+            # Current letter is correct
+            letter_colors.append(correct_color)
+        else:
+            # Remaining letters or incorrect current letter
+            letter_colors.append(incorrect_color)
+
+    # Display the word with colored letters
+    for i, letter in enumerate(target_word):
+        letter_pos_x = 50 + i * 20  # Horizontal position of the letter
+        cv2.putText(frame, letter.upper(), (letter_pos_x, 80), font, 0.7, letter_colors[i], 2)
+
+    # Display remaining time
+    cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
+
+    # Display instruction on the bottom right
+    quit_text = "Press 'q' to quit"
+    text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
+    cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 20), font, 0.7, text_color, 2)
+
+    cv2.imshow("Word Quiz Mode", frame)
+
+    # Return True if the current letter is correct, False otherwise
+    return current_index < len(target_word) and predicted_character and predicted_character.lower() == target_word[current_index].lower()
+
 def select_quiz_letter(progress):
     """
     Selecting the next letter for practice using a simple heuristic:
@@ -110,54 +147,60 @@ def select_quiz_letter(progress):
     weights = [1 / (progress[letter]['correct'] + 0.1) / (progress[letter]['attempts'] + 1) for letter in letters]
     return random.choices(letters, weights)[0]
 
-def quiz_letters(model,letter_quiz_marks, settings):
+def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
     cap, hands = initialize_camera()
     
     total_attempts = 0
     total_correct = 0
 
-    # Intializing the scorescheet dictionary for all of the letters.
+    # Initialize the score sheet dictionary for all of the letters
     letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
     
-    # Using a try, except, finally block to execute the the quiz letters logic.
     try:
-        for i in range(settings["Amount of letters to be quizzed on"]):
+        for i in range(letter_quiz_settings["Amount of letters to be quizzed on"]):
             target_letter = select_quiz_letter(letter_quiz_marks)
-            frame, results = capture_and_process_frame(cap, hands)
-
             print(f"Target letter to display: {target_letter}")
             start_time = time.time()
             letter_accuracies[target_letter]['attempts'] += 1
             total_attempts += 1
-            
-            while True:
-    
-                predicted_character = make_prediction(model, results, frame)
 
-                # You will break if they show the correct character
-                if predicted_character and predicted_character.lower() == target_letter.lower():
+            # A flag to control the outer loop (So the user can quit by pressing 'q')
+            exit_flag = False
+            amount_remaining = letter_quiz_settings["Amount of letters to be quizzed on"] - i - 1
+
+            while True:
+                # Process frame and make predictions
+                frame, results = capture_and_process_frame(cap, hands)
+                predicted_character = make_prediction(model, results, frame)
+                time_remaining = letter_quiz_settings["Time for each letter (seconds)"] - (time.time() - start_time)
+                
+                # Display updates
+                is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir)
+                
+                # Check if the prediction is correct
+                if is_correct:
                     letter_accuracies[target_letter]['correct'] += 1
                     total_correct += 1
-                    break  # Move to next letter immediately upon correct predicti
+                    cv2.waitKey(1000)  # Display Correct! for 1 second
+                    break
 
-                if (time.time() - start_time) > settings["Time for each letter (seconds)"]:
-                    break  # Move to next letter if time limit is exceeded
-
+                if time_remaining <= 0:
+                    break  # Exit the loop if the time is up
+                
                 if cv2.waitKey(1) & 0xFF == ord('q'):
-                    raise KeyboardInterrupt  # Use an exception to break out of the loop
+                    exit_flag = True
+                    break
             
-            time.sleep(0.5)  # Short pause between letters (optional)
+            if exit_flag:
+                print("Quiz ended early by the user.")
+                break
     
-    except KeyboardInterrupt:
-        print("Quiz ended early by the user.")
-
-    # The finally block executes after the try and except block regardless of what happens!
     finally:
-        # Closing the mediapipe cv2 windows
+        # Clean up
         cap.release()
         cv2.destroyAllWindows()
         
-        # letter accuracies is essentially just the quiz maks
+        # Calculate and print the quiz results
         print("Quiz Results:")
         for letter, stats in letter_accuracies.items():
             if stats['attempts'] > 0:
@@ -167,41 +210,75 @@ def quiz_letters(model,letter_quiz_marks, settings):
         overall_accuracy = (total_correct / total_attempts) * 100 if total_attempts > 0 else 0
         print(f"Overall accuracy: {overall_accuracy:.2f}%")
 
+        # Save the quiz marks
         save_letter_quiz(letter_accuracies, "update marks")
     
-    print(letter_accuracies)
-
-# Item 1. Thursday
-def quiz_words(model, word_quiz_file, settings):
+def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
     cap, hands = initialize_camera()
-    # initialize the tracking of the score of this quiz
 
-    # Things to ask before starting:
-    # 1. Would you like to view or reset your previous quiz marks?
-    # 2. Show the deault settings (3 words, 3 mins max with the ability to self end the quiz)
-    #    Ask if they'd like to view or change the default settings. 
-    #    2.a) How many words would you like to be quizzed on today (int)
-    #    2.b) What is the maximum time you'd like for this word quiz (int)
-    # 3. Use the same ANKI algorithmn to decided which words they will be quizzed on in order.
+    total_attempts = 0
+    total_correct_words = 0
+    word_accuracies = {}  # Dictionary to store attempts and correct counts for each word
+    used_words = []
 
+    try:
+        for i in range(word_quiz_settings["Amount of words to be quizzed on"]):
+            target_word = select_quiz_word(used_words)  # Function to select a word
+            print(f"Word to display: {target_word}")
+            start_time = time.time()
+            word_accuracies[target_word] = {'attempts': 0, 'correct': 0}
+            word_accuracies[target_word]['attempts'] += 1
+            total_attempts += 1
 
-    # The main quiz logic:
-    # (For each word in the range of the amount of words the user chose, this is what will happen,)
-    # (note: You need to keep track of the start and end time for each word and put in)
-    # 1. Show the letters of the word they're being quizzed on in red. As the ML algroithmr recognizes each 
-    #   letter, turn that letter green. Once all the letters are green, consider that word done and record the time
-    #   that it took on the marksheet. If any specific letter took a long time, record it in a systematic way
-    #   in the notes section of the marksheet.
-    # 2. They also need to be able to see a countdown timer on their screen.
-    # 3. They also need to see the mediapipe box for the hand gesture recognition on their screen as well.
-    # 4. Return the marksheet, the progress dict with this entry added (acompnaied with the date and time it was done), and the feedback marksheet stuff as a srting.
-    # 5. Add visuals to make this a very clean and good game.
+            current_index = 0  # Current index of the letter in the word
 
-    # The quiz_letters duntion should work similarly but only quiz letters.
+            while current_index < len(target_word):
+                frame, results = capture_and_process_frame(cap, hands)
+                predicted_character = make_prediction(model, results, frame)
+                time_remaining = word_quiz_settings["Time for each letter (seconds)"] - (time.time() - start_time)
 
-# -> This function isn't actually written yet lol
-def select_quiz_word(progress):
-    pass
+                # Display the word and check the prediction
+                is_correct = update_and_display_word(frame, target_word, current_index, predicted_character, time_remaining, images_dir)
+
+                if is_correct:
+                    current_index += 1  # Move to the next letter if correct
+
+                if time_remaining <= 0 or cv2.waitKey(1) & 0xFF == ord('q'):
+                    break  # Exit if time's up or 'q' is pressed
+
+            if current_index == len(target_word):
+                word_accuracies[target_word]['correct'] += 1
+                total_correct_words += 1
+
+            time.sleep(0.5)  # Short pause between words
+
+    except KeyboardInterrupt:
+        print("Quiz ended early by the user.")
+
+    finally:
+        cap.release()
+        cv2.destroyAllWindows()
+
+        # Calculate and display the quiz results
+        print("Word Quiz Results:")
+        for word, stats in word_accuracies.items():
+            accuracy = (stats['correct'] / stats['attempts']) * 100 if stats['attempts'] > 0 else 0
+            print(f"Word {word}: {accuracy:.2f}% accuracy")
+        
+        overall_accuracy = (total_correct_words / total_attempts) * 100 if total_attempts > 0 else 0
+        print(f"Overall word accuracy: {overall_accuracy:.2f}%")
+
+        save_word_quiz(word_accuracies, "word_quiz_results.pkl")  # Save the quiz results
+
+def select_quiz_word(used_words):
+    # List of 10 common ASL words
+    common_asl_words = ["hello", "sorry", "please", "thank", "help", "love", "yes", "no", "friend", "family"]
+    available_words = [word for word in common_asl_words if word not in used_words]
+
+    word_choice = random.choice(available_words) if available_words else None
+    used_words.append(word_choice)
+
+    return word_choice
 
 # returns either "l", "w", or "q" -> q to quit, the rest are for the respective types.
 def type_of_quiz() -> str:
@@ -223,22 +300,22 @@ def main():
 
     quiz_type = type_of_quiz()
     if quiz_type == "l":
-        quiz_settings = letter_quiz_settings()
+        letter_quiz_settings = letter_quiz_settings()
         letter_quiz_marks =  present_user_options_for_marks(quiz_type)
         
         if letter_quiz_marks == None:
             letter_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
         
-        quiz_letters(model,letter_quiz_marks, quiz_settings)
+        quiz_letters(model, letter_quiz_marks, letter_quiz_settings, IMAGES_DIR)
 
     elif quiz_type == "w":
-        quiz_settings = word_quiz_settings()
+        word_quiz_settings = word_quiz_settings()
         word_quiz_marks =  present_user_options_for_marks(quiz_type)
         
         if word_quiz_marks == None:
             word_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
         
-        quiz_words(model, word_quiz_marks, quiz_settings)
+        quiz_words(model, word_quiz_marks,word_quiz_settings, IMAGES_DIR)
 
     elif quiz_type == "q":
         sys.exit("Thank you for trying SignSpell!")

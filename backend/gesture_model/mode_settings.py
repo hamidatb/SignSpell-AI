@@ -69,7 +69,26 @@ def letter_quiz_settings():
     return default_settings
 
 def word_quiz_settings():
-    pass
+    default_settings = {
+        "Amount of words to be quizzed on": 3,
+        "Time for each word (seconds)": 180  # 3 minutes as default
+    }
+
+    print("\nCurrent word quiz settings:")
+    for key, value in default_settings.items():
+        print(f"{key}: {value}")
+
+    if input("Would you like to change any of the default settings? (y/n): ").strip().lower() == "y":
+        try:
+            num_words = int(input("How many words would you like to be quizzed on? : ").strip())
+            default_settings["Amount of words to be quizzed on"] = num_words
+
+            max_time_per_word = int(input("Maximum time per word (in seconds): ").strip())
+            default_settings["Time for each word (seconds)"] = max_time_per_word
+        except ValueError:
+            print("Invalid input. Using default settings.")
+
+    return default_settings 
 
 def ensure_directory_exists(directory):
     if not os.path.exists(directory):
@@ -134,17 +153,18 @@ def save_letter_quiz(letter_accuracies, type_of_save):
     return letter_accuracies
 
 def save_word_quiz(word_quiz_marks, type_of_save):
-
     run_data_dir = get_run_data_file_path()
     word_quiz_file_path = os.path.join(run_data_dir, "word_quiz_marks.pkl")
 
-    if type_of_save == "reset_marks":
-        letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
+    # Reset the marks if requested
+    if type_of_save == "reset_marks" or word_quiz_marks == None:
+        word_quiz_marks = {}  # Reset to an empty dictionary
 
+    # Save the word quiz marks to the file
     with open(word_quiz_file_path, "wb") as file:
-        pickle.dump(word_quiz_marks,file)
+        pickle.dump(word_quiz_marks, file)
 
-    print(f"Your finger spell word quiz marks have been saved to {word_quiz_file_path}")
+    print(f"Word quiz marks have been {'reset' if type_of_save == 'reset_marks' else 'saved'} in '{word_quiz_file_path}'.")
     return word_quiz_marks
 
 def present_user_options_for_marks(type_of_quiz:str):
