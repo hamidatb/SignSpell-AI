@@ -121,13 +121,14 @@ def update_and_display_word(frame, target_word, current_index, predicted_charact
     # Display the word with colored letters
     for i, letter in enumerate(target_word):
         letter_pos_x = 50 + i * 20  # Horizontal position of the letter
-        cv2.putText(frame, letter.upper(), (letter_pos_x, 80), font, 0.7, letter_colors[i], 2)
+        # cv2.putText(frame, text to show, coordinate, font, fotn size, font colour, font boldness)
+        cv2.putText(frame, letter.upper(), (letter_pos_x, 80), font, 1, letter_colors[i], 2)
 
     # Display remaining time
     cv2.putText(frame, f"Seconds remaining: {time_remaining:.2f}s", (10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
     # Display instruction on the bottom right
-    quit_text = "Press 'q' to quit"
+    quit_text = "Spell the words using the fingerspell alphabet. Press 'q' to quit"
     text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
     cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
@@ -260,13 +261,13 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
         cv2.destroyAllWindows()
 
         # Calculate and display the quiz results
-        print("Word Quiz Results:")
+        print("Word Quiz Results:\n")
         for word, stats in word_accuracies.items():
             accuracy = (stats['correct'] / stats['attempts']) * 100 if stats['attempts'] > 0 else 0
             print(f"Word {word}: {accuracy:.2f}% accuracy")
         
         overall_accuracy = (total_correct_words / total_attempts) * 100 if total_attempts > 0 else 0
-        print(f"Overall word accuracy: {overall_accuracy:.2f}%")
+        print(f"\nOverall word accuracy: {overall_accuracy:.2f}%")
 
         save_word_quiz(word_accuracies, "word_quiz_results.pkl")  # Save the quiz results
 
