@@ -1,12 +1,22 @@
 import os
+import sys
 from openai import OpenAI
 from practice_mode import get_directory
-import sys 
+from dotenv import load_dotenv
+
+# Loading the envirnoment variables from the .env file (API key)
+# Note: Only I have access to the .env file. If you'd like to run this part, copythis repo to your device and add your own .env file.
+load_dotenv()
+
+api_key = os.getenv('OPENAI_API_KEY')
+if not api_key:
+    raise ValueError("No OPENAI_API_KEY found in environment variables")
+
+client = OpenAI(api_key=api_key)
+print (api_key)
 
 # The main function interacting with the openAI API
 def ask_gpt(task_needed, marks, mark_history):
-    client = OpenAI()
-
     gpt_role = "You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement"
 
     if marks and mark_history:
@@ -49,8 +59,10 @@ def ask_gpt(task_needed, marks, mark_history):
         ]
         )
 
-
-    print(completion.choices[0].message)
+    raw_message = str(completion.choices[0].message)
+    formatted_message = raw_message.replace('\\n', '\n')
+    message_lines = formatted_message.split("\n")
+    print(formatted_message)
 
 # Imports the needed funcitons for the practice mode
 def practice_imports():
@@ -103,8 +115,6 @@ def quiz_feedback():
     reponse = ask_gpt(prompt,quiz_mark, None)
 
 def kind_gpt(username, task, context):
-    client = OpenAI
-
     gpt_role = "You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement."
 
     completion = client.chat.completions.create(
@@ -120,7 +130,11 @@ def kind_gpt(username, task, context):
     )
 
     response = (completion.choices[0].message)
-    return response
+    raw_message = str(completion.choices[0].message)
+    formatted_message = raw_message.replace('\\n', '\n')
+    message_lines = formatted_message.split("\n")
+    
+    return formatted_message
  
 def common_prompts():
     give_program_explanation = """ Give the user a kind and friendly explanation and summer of what SignSpell AI is. Speak as a friendly AI who knows it was created by Hamidat Bello and relies on GPT. 
@@ -147,6 +161,7 @@ def common_prompts():
     return common_responses
 
 def introduction_loop():
+    
     SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
     username = input("Hi! :) Welcome to SignSpell AI! What's your name?: ").title().strip()

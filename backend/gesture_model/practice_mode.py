@@ -211,7 +211,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
     save_progress(progress, file_path)
 
     print(marks)
-    return marks
+    return marks, progress
 
 def main():
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
@@ -219,7 +219,9 @@ def main():
     settings = practice_settings()
     progress_file = "user_progress.pkl"
     user_progress = load_progress(progress_file)
-    practice_loop(model, user_progress, progress_file, settings, IMAGES_DIR)
+    practice_mark, practice_progress = practice_loop(model, user_progress, progress_file, settings, IMAGES_DIR)
+    
+    return practice_mark, practice_progress
 
 if __name__ == "__main__":
     main()
