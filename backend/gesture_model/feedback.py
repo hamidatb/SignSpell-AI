@@ -8,16 +8,16 @@ from dotenv import load_dotenv
 # Note: Only I have access to the .env file. If you'd like to run this part, copythis repo to your device and add your own .env file.
 load_dotenv()
 
-api_key = os.getenv('OPENAI_API_KEY')
-if not api_key:
+try:
+    api_key = os.getenv('SIGNSPELL_API_KEY')
+except ValueError:
     raise ValueError("No OPENAI_API_KEY found in environment variables")
 
 client = OpenAI(api_key=api_key)
-print (api_key)
 
 # The main function interacting with the openAI API
 def ask_gpt(task_needed, marks, mark_history):
-    gpt_role = "You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement"
+    gpt_role = "You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement. Users are trying to use the program to learn ASL, and you're the kind feedback"
 
     if marks and mark_history:
         completion = client.chat.completions.create(
@@ -61,8 +61,16 @@ def ask_gpt(task_needed, marks, mark_history):
 
     raw_message = str(completion.choices[0].message)
     formatted_message = raw_message.replace('\\n', '\n')
-    message_lines = formatted_message.split("\n")
-    print(formatted_message)
+
+    # Split the string to extract the message part
+    message_start = formatted_message.find('content="') + len('content="')
+    message_end = formatted_message.find('", role=')
+
+    # Extract the message content
+    message_content = formatted_message[message_start:message_end]
+    
+    print(message_content)
+    return message_content
 
 # Imports the needed funcitons for the practice mode
 def practice_imports():
@@ -93,7 +101,7 @@ def quiz_imports():
     from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
     from practice_mode import get_letter_image
 
-def practice_feedback(SCRIPT_DIR) -> str:
+def practice_feedback() -> str:
     practice_imports()
     from practice_mode import get_directory, select_letter, initialize_camera, capture_and_process_frame, make_prediction, get_letter_image, update_and_display, practice_loop
     from practice_mode import main as practice_main
@@ -115,8 +123,11 @@ def quiz_feedback():
     reponse = ask_gpt(prompt,quiz_mark, None)
 
 def kind_gpt(username, task, context):
-    gpt_role = "You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement."
+    gpt_role = f"""You are a kind and friendly American Sign Language Finger Spelling teacher. You want to give supportive feedback based on marks an errors, or just enouragement.
+                You are called to respond at different stages in the program, be friendly and kind. 
 
+                Here is some context about the program: {common_prompts()[0]}
+    """
     completion = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
@@ -129,12 +140,17 @@ def kind_gpt(username, task, context):
         } ]
     )
 
-    response = (completion.choices[0].message)
     raw_message = str(completion.choices[0].message)
     formatted_message = raw_message.replace('\\n', '\n')
-    message_lines = formatted_message.split("\n")
     
-    return formatted_message
+    # Split the string to extract the message part
+    message_start = formatted_message.find('content="') + len('content="')
+    message_end = formatted_message.find('", role=')
+
+    # Extract the message content
+    message_content = formatted_message[message_start:message_end]
+    
+    return message_content
  
 def common_prompts():
     give_program_explanation = """ Give the user a kind and friendly explanation and summer of what SignSpell AI is. Speak as a friendly AI who knows it was created by Hamidat Bello and relies on GPT. 
@@ -155,6 +171,11 @@ def common_prompts():
                                     Backend: The backend is being developed in Python, using Flask. I'm using OpenCV gesture recognition.
                                     APIs: Integrating with OpenAI's GPT-4 API for an enhanced learning experience.
                                     Database: I am using SQL for managing user data.
+
+                                    The github link is: https://github.com/hamidatb/SignSpell-AI
+                                    They can reach out to collaborate here with Hamidat (SWE, backend, project management): https://www.linkedin.com/in/hamidatbello/ (Im friendly and open to collaborate on projects or talk about tech)
+                                    They can reach out here to collaborate with Zusi (frontend, UI/UX): https://www.linkedin.com/in/zusiarebun/
+
                                     """
     
     common_responses = [give_program_explanation]
@@ -164,14 +185,15 @@ def introduction_loop():
     
     SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
-    username = input("Hi! :) Welcome to SignSpell AI! What's your name?: ").title().strip()
+    username = input("\nHi! :) Welcome to SignSpell AI! What's your name?: ").title().strip()
     introduction_options = "Ask what they would like to do? 1 = Run program, 2 = Have the info about SignSpell AI shown to them, 3 = Quit, 4 = Hear a random positive fact"
-    print(kind_gpt(username, introduction_options, None))
+    print(f"\n{kind_gpt(username, introduction_options, None)}\n")
     introduction_options = int(input("Enter your response here (int):"))
     if introduction_options == 1:
         while True:
-            run_type_prompt = f"Ask What type of session {username} like to do today (at this time)? Options: Practice Mode, Letter quiz, Word quiz, Wuit. (input p,l, w, or q)"
-            print(kind_gpt(username, run_type_prompt, None))
+            run_type_prompt = f"Ask What type of session {username} like to do today (at this time)? Options: Practice Mode, Letter quiz, Word quiz, Wuit. (input p,l, w, or q). Give the user a structured list"
+            print(f"\n{kind_gpt(username, run_type_prompt, None)}\n")
+
             run_type = input("Please enter your choice: ").strip().lower()
             if run_type == "p":
                 practice_feedback()
@@ -181,20 +203,20 @@ def introduction_loop():
                 break
             elif run_type == "q":
                 nice_bye = "The user decided to quit SignSpell early, give them a friendly goodbye."
-                print(kind_gpt(username, nice_bye, None))
+                print(f"\n{kind_gpt(username, nice_bye, None)}\n")
                 break
             else:
                 print("Invalid session type entered. Please input either (p, l, w or q).")
     elif introduction_options == 2:
         program_info_prompt = "Explain SignSpell AI in a friendly manner to the user"
         program_information = common_prompts()[0]
-        print(kind_gpt(username, program_info_prompt,program_information))
+        print(f"\n{kind_gpt(username, program_info_prompt,program_information)}\n")
     elif introduction_options == 3:
         nice_bye_prompt = "The user decided to quit SignSpell early, give them a friendly goodbye."
-        print(kind_gpt(username, nice_bye_prompt,program_information))
+        print(f"\n{kind_gpt(username, nice_bye_prompt, None)}\n")
     elif introduction_options == 4:
         fun_fact_prompt = "Give a friendly random positive fact about ASl and technology. Cite your source and be personable."
-        print(kind_gpt(username,fun_fact_prompt, None))
+        print(f"\n{kind_gpt(username,fun_fact_prompt, None)}\n")
     else:
         sys.exit("Invalid option chosen. Bye! :)")
 

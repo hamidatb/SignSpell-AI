@@ -212,6 +212,7 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
 
         # Save the quiz marks
         save_letter_quiz(letter_accuracies, "update marks")
+        return letter_accuracies
     
 def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
     cap, hands = initialize_camera()
@@ -270,6 +271,7 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
         print(f"\nOverall word accuracy: {overall_accuracy:.2f}%")
 
         save_word_quiz(word_accuracies, "word_quiz_results.pkl")  # Save the quiz results
+        return word_accuracies
 
 def select_quiz_word(used_words):
     # List of 10 common ASL words
