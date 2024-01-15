@@ -303,13 +303,13 @@ def main():
 
     quiz_type = type_of_quiz()
     if quiz_type == "l":
-        letter_quiz_settings = letter_quiz_settings()
+        l_quiz_settings = letter_quiz_settings()
         letter_quiz_marks =  present_user_options_for_marks(quiz_type)
         
         if letter_quiz_marks == None:
             letter_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
         
-        quiz_letters(model, letter_quiz_marks, letter_quiz_settings, IMAGES_DIR)
+        quiz_letters(model, letter_quiz_marks, l_quiz_settings, IMAGES_DIR)
 
     elif quiz_type == "w":
         w_quiz_settings = word_quiz_settings()
@@ -325,3 +325,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
