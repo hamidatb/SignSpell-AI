@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - SignSpell AI</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <main>
         <h2>Login</h2>
-        <form action="/login" method="post">
+        <form action="login.html" method="post">
             <div>
                 <label for="username">Username:</label>
                 <input type="text" id="username" name="username" required>
@@ -22,7 +22,7 @@
                 <button type="submit">Login</button>
             </div>
             <div>
-                Don't have an account? <a href="/signup">Sign up</a>
+                Don't have an account? <a href="signup.html">Sign up</a>
             </div>
         </form>
     </main>
