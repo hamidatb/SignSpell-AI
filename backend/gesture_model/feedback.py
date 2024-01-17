@@ -5,7 +5,7 @@ from practice_mode import get_directory
 from dotenv import load_dotenv
 
 # Loading the envirnoment variables from the .env file (API key)
-# Note: Only I have access to the .env file. If you'd like to run this part, copythis repo to your device and add your own .env file.
+# Note: Only I have access to my specific .env file. If you'd like to run this part, copythis repo to your device and add your own .env file.
 load_dotenv()
 
 try:
