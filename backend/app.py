@@ -1,8 +1,8 @@
 from flask import Flask, render_template, Response, request, redirect, url_for
 import cv2
 import os
-from mode_settings import load_progress, save_progress
-from practice_mode import main as practice_main
+from gesture_model.mode_settings import load_progress, save_progress
+from gesture_model.practice_mode import main as practice_main
 from gesture_model/quiz_mode import main as quiz_main
 
 app = Flask(__name__)
