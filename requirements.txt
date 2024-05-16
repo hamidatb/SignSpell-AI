@@ -1,9 +1,9 @@
 Flask==2.0.1
-tensorflow==2.5.0
+tensorflow==2.16.1
 opencv-python==4.7.0.68
-mediapipe==0.9.0.1
+mediapipe==0.10.14
 scikit-learn==1.2.0
-numpy==1.19.5
+numpy>=1.23.5
 Pillow==8.2.0
 requests==2.25.1
 openai==0.10.2
