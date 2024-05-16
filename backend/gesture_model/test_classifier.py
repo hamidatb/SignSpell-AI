@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import sys
+import sklearn
 import os
 import pickle
 import numpy as np

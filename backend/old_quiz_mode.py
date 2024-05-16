@@ -5,7 +5,6 @@ import numpy as np
 import time
 import sys
 import random
-import base64
 from .test_classifier import open_model
 from .mode_settings import save_letter_quiz, save_word_quiz
 from .mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
@@ -23,10 +22,6 @@ def emit_terminal_output(output):
 def emit_question(question, options):
     socketio.emit('quiz_question', {'question': question, 'options': options})
 
-def emit_frame(frame):
-    _, buffer = cv2.imencode('.jpg', frame)
-    frame_encoded = base64.b64encode(buffer).decode('utf-8')
-    socketio.emit('video_frame', {'frame': frame_encoded})
 
 def get_directory() -> str:
     # Getting the directory where this script file is located
@@ -89,8 +84,8 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
             cv2.rectangle(frame, (0, 0), (frame.shape[1], frame.shape[0]), correct_color, cv2.FILLED)
             cv2.putText(frame, feedback_text, (frame.shape[1] // 2 - 100, frame.shape[0] // 2),
                         font, 1, text_color, 2)
-            emit_frame(frame)
-            socketio.sleep(1)  # Wait for 1 second
+            cv2.imshow("Quiz Mode", frame)
+            cv2.waitKey(1000)  # Wait for 1 second
             return is_correct
     else:
         is_correct = False
@@ -110,7 +105,8 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
     cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 20), font, 0.7, text_color, 2)
     
-    emit_frame(frame)
+    cv2.imshow("Quiz Mode", frame)
+
     return is_correct
 
 def update_and_display_word(frame, target_word, current_index, predicted_character, time_remaining, images_dir):
@@ -147,7 +143,7 @@ def update_and_display_word(frame, target_word, current_index, predicted_charact
     text_width, _ = cv2.getTextSize(quit_text, font, 0.7, 2)[0]
     cv2.putText(frame, quit_text, (frame.shape[1] - text_width - 10, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
-    emit_frame(frame)
+    cv2.imshow("Word Quiz Mode", frame)
 
     # Return True if the current letter is correct, False otherwise
     return current_index < len(target_word) and predicted_character and predicted_character.lower() == target_word[current_index].lower()

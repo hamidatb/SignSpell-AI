@@ -1,28 +1,20 @@
-
-from flask import Flask, render_template, Response, request, redirect, url_for
-from flask_socketio import SocketIO, emit
+# backend/app.py
+from flask import Flask, render_template, Response
+from socketio_setup import socketio
 import cv2
-import os
-import sqlite3
-from gesture_model.mode_settings import load_progress, save_progress
-from gesture_model.practice_mode import main as practice_main
-from gesture_model.quiz_mode import main as quiz_main
-from flask_session import Session
-from werkzeug.security import check_password_hash, generate_password_hash
 import base64
-import io
-from PIL import Image
+import threading
+import time
+from gesture_model.quiz_mode import main as quiz_main
+from gesture_model.quiz_mode import handle_quiz_answer
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-socketio_instance = socketio
+socketio.init_app(app)
 
-# Ensure the camera is initialized only once
 cap = cv2.VideoCapture(0)
 
 @app.route('/')
 def index():
-    """Render the main page with options to start quiz or practice mode."""
     return render_template('quiz.html')
 
 def generate_frames():
@@ -44,18 +36,26 @@ def send_frame_to_socketio():
     while True:
         success, frame = cap.read()
         if success:
-            # Encode the frame in JPEG format
             _, buffer = cv2.imencode('.jpg', frame)
-            # Convert the frame to base64 to send it via Socket.IO
             frame_encoded = base64.b64encode(buffer).decode('utf-8')
-            # Emit the frame to the 'video_frame' event
             socketio.emit('video_frame', {'frame': frame_encoded})
         socketio.sleep(0.1)
 
 @socketio.on('connect')
 def on_connect():
-    emit('response', {'message': 'Connected to server!'})
+    socketio.emit('response', {'message': 'Connected to server!'})
+
+@socketio.on('start_quiz')
+def start_quiz():
+    print("Quiz started")
+    socketio.emit('response', {'message': 'Starting quiz...'})
+    threading.Thread(target=quiz_main).start()
+    
+@socketio.on('quiz_answer')
+def quiz_answer(data):
+    handle_quiz_answer(data)
 
 if __name__ == '__main__':
     socketio.start_background_task(target=send_frame_to_socketio)
     socketio.run(app, debug=True)
+    cv2.destroyAllWindows()
