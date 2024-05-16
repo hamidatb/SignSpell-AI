@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Practice Mode - ASL Learning</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+    <!-- Include other necessary scripts here -->
+</head>
+<body>
+    <h1>Practice Mode</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button onclick="startPractice()">Start Practice</button>
+    <div id="output"></div>
+    <script>
+        const video = document.getElementById('video');
+
+        // Get access to the camera!
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+
+        function startPractice() {
+            alert('Practice started!');
+            // You can implement more sophisticated interactions here,
+            // possibly sending frames to the server for analysis and getting results back.
+        }
+    </script>
+</body>
+</html>

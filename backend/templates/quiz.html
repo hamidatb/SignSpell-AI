@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Mode</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        #video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #terminal-output {
+            width: 80%;
+            height: 300px;
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <img id="video-frame" src="" alt="Video Frame" />
+    </div>
+    <div id="terminal-output"></div>
+
+    <script>
+        const socket = io();
+
+        // Listen for video frames
+        socket.on('video_frame', function(data) {
+            const image = document.getElementById('video-frame');
+            image.src = 'data:image/jpeg;base64,' + data.frame;
+        });
+
+        // Listen for terminal output
+        socket.on('terminal_output', function(data) {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML += data.output + '<br/>';
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('response', function(data) {
+            console.log(data.message);
+        });
+    </script>
+</body>
+</html>

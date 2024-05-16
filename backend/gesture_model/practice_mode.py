@@ -5,10 +5,9 @@ import numpy as np
 import time
 import sys
 import random
-from hand_gesture_recognizer import recognize_letter
-from test_classifier import open_model
-from mode_settings import load_progress, save_progress, practice_settings
-from mode_settings import display_settings
+from .test_classifier import open_model
+from .mode_settings import load_progress, save_progress, practice_settings
+from .mode_settings import display_settings
 
 
 def get_directory() -> str:

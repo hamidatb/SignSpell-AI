@@ -7,3 +7,6 @@ numpy>=1.23.5
 Pillow==8.2.0
 requests==2.25.1
 openai==0.10.2
+python-dotenv
+Flask-Session==0.4.0
+flask-socketio

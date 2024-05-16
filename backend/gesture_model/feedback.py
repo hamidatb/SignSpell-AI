@@ -61,6 +61,7 @@ def ask_gpt(task_needed, marks, mark_history):
 
     raw_message = str(completion.choices[0].message)
     formatted_message = raw_message.replace('\\n', '\n')
+    print(raw_message, formatted_message)
 
     # Split the string to extract the message part
     message_start = formatted_message.find('content="') + len('content="')
@@ -72,7 +73,7 @@ def ask_gpt(task_needed, marks, mark_history):
     print(message_content)
     return message_content
 
-# Imports the needed funcitons for the practice mode
+# Imports the needed functions for the practice mode
 def practice_imports():
     import cv2
     import mediapipe as mp

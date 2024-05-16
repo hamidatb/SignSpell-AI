@@ -5,12 +5,14 @@ import numpy as np
 import time
 import sys
 import random
-from hand_gesture_recognizer import recognize_letter
-from test_classifier import open_model
-from mode_settings import save_letter_quiz, save_word_quiz
-from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
-from practice_mode import get_letter_image
+from .test_classifier import open_model
+from .mode_settings import save_letter_quiz, save_word_quiz
+from .mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
+from.practice_mode import get_letter_image
+from ..app import socketio_instance
 
+def emit_terminal_output(output):
+    socketio_instance.emit('terminal_output', {'output': output})
 
 def get_directory() -> str:
     # Getting the directory where this script file is located
@@ -51,7 +53,6 @@ def make_prediction(model, results, frame):
         predicted_character = chr(65 + int(prediction[0]))  
         return predicted_character
     return None
-    return letter_image
 
 def update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir):
     # Define colors for the boxes and text
