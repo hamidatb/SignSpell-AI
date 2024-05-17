@@ -25,108 +25,187 @@
     </main>
 
     <footer>
-        <p>Check out our <a href="https://github.com/hamidatb/SignSpell-AI" target="_blank">GitHub Repository</a></p>
+        <div>Check out our <a href="https://github.com/hamidatb/SignSpell-AI" target="_blank">GitHub Repository</a></div>
+        <div> <button id="start-chat" class="chatbox-send">Start SignSpell-AI Tutor Chat</button></div>
     </footer>
 
     <div id="chatbox" class="chatbox">
-        <div id="chatbox-header" class="chatbox-header">Chat with ASL Tutor</div>
+        <div id="chatbox-header" class="chatbox-header">
+            Chat with ASL Tutor
+            <button id="close-chatbox" class="close-chatbox">x</button>
+        </div>
         <div id="chatbox-body" class="chatbox-body"></div>
         <div class="chatbox-input-container">
-            <input type="text" id="chatbox-input" class="chatbox-input" placeholder="Type your message here...">
-            <button id="chatbox-send" class="chatbox-send">Send</button>
+            <input type="text" id="chatbox-input" class="chatbox-input" placeholder="Type your message here..." disabled>
+            <button id="chatbox-send" class="chatbox-send" disabled>Send</button>
         </div>
     </div>
 
+
     <script>
         const socket = io();
-
+    
         socket.on('video_frame', function(data) {
             const image = document.getElementById('video-frame');
-            image.src = 'data:image/jpeg;base64,' + data.frame;
+            if (image) {
+                image.src = 'data:image/jpeg;base64,' + data.frame;
+            }
         });
-
+    
         socket.on('terminal_output', function(data) {
             const terminal = document.getElementById('terminal-output');
-            terminal.innerHTML += data.output + '<br/>';
-            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+            if (terminal) {
+                terminal.innerHTML += data.output + '<br/>';
+                terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+            }
         });
-
+    
         socket.on('quiz_question', function(data) {
             const terminal = document.getElementById('terminal-output');
-            terminal.innerHTML += `<strong>${data.question}</strong><br/>${data.options}<br/>`;
-            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+            if (terminal) {
+                terminal.innerHTML += `<strong>${data.question}</strong><br/>${data.options}<br/>`;
+                terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+            }
         });
-
+    
         socket.on('response', function(data) {
             console.log(data.message);
         });
-
-        document.getElementById('start-button').addEventListener('click', function() {
-            socket.emit('start_quiz');
-        });
-
-        document.getElementById('terminate-button').addEventListener('click', function() {
-            fetch('/terminate_quiz', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => console.log(data.message));
-        });
-
-        document.getElementById('quiz-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const input = e.target.value.trim();
-                if (input) {
-                    socket.emit('quiz_answer', { answer: input });
-                    e.target.value = ''; // Clear the input field
+    
+        const startButton = document.getElementById('start-button');
+        if (startButton) {
+            startButton.addEventListener('click', function() {
+                socket.emit('start_quiz');
+            });
+        }
+    
+        const terminateButton = document.getElementById('terminate-button');
+        if (terminateButton) {
+            terminateButton.addEventListener('click', function() {
+                fetch('/terminate_quiz', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => console.log(data.message));
+            });
+        }
+    
+        const quizInput = document.getElementById('quiz-input');
+        if (quizInput) {
+            quizInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const input = e.target.value.trim();
+                    if (input) {
+                        socket.emit('quiz_answer', { answer: input });
+                        e.target.value = ''; // Clear the input field
+                    }
                 }
-            }
-        });
-
-        document.getElementById('start-practice-button')?.addEventListener('click', function() {
-            socket.emit('start_practice');
-        });
-
-        document.getElementById('terminate-practice-button')?.addEventListener('click', function() {
-            fetch('/terminate_practice', { method: 'POST' })
-                .then(response => response.json())
-                .then(data => console.log(data.message));
-        });
-
-        document.getElementById('practice-input')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                const input = e.target.value.trim();
-                if (input) {
-                    socket.emit('practice_answer', { answer: input });
-                    e.target.value = ''; // Clear the input field
+            });
+        }
+    
+        const startPracticeButton = document.getElementById('start-practice-button');
+        if (startPracticeButton) {
+            startPracticeButton.addEventListener('click', function() {
+                socket.emit('start_practice');
+            });
+        }
+    
+        const terminatePracticeButton = document.getElementById('terminate-practice-button');
+        if (terminatePracticeButton) {
+            terminatePracticeButton.addEventListener('click', function() {
+                fetch('/terminate_practice', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => console.log(data.message));
+            });
+        }
+    
+        const practiceInput = document.getElementById('practice-input');
+        if (practiceInput) {
+            practiceInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const input = e.target.value.trim();
+                    if (input) {
+                        socket.emit('practice_answer', { answer: input });
+                        e.target.value = ''; // Clear the input field
+                    }
                 }
-            }
-        });
-
+            });
+        }
+    
         // Chatbox functionality
         const chatboxInput = document.getElementById('chatbox-input');
         const chatboxBody = document.getElementById('chatbox-body');
         const chatboxSend = document.getElementById('chatbox-send');
+        const startChatButton = document.getElementById('start-chat');
+        const chatbox = document.getElementById('chatbox');
+        const closeChatboxButton = document.getElementById('close-chatbox');
 
-        function sendMessage() {
-            const message = chatboxInput.value.trim();
-            if (message) {
-                socket.emit('chat_message', { message: message });
-                chatboxInput.value = ''; // Clear the input field
-                chatboxBody.innerHTML += `&lt;div class="user-message"&gt;${message}&lt;/div&gt;`;
-                chatboxBody.scrollTop = chatboxBody.scrollHeight; // Auto-scroll to the bottom
-            }
+
+        function addMessage(type, message) {
+            console.log(`Adding ${type} message: `, message);  // Log the message being added to the chatbox
+            if (chatboxBody) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = type + '-message';
+                messageDiv.innerHTML = message; // Use textContent to prevent HTML injection
+                chatboxBody.appendChild(messageDiv);
+                chatboxBody.scrollTop = chatboxBody.scrollHeight;
+        } else {
+            console.log("chatboxBody not found, cannot display message.");
+        }
         }
 
-        chatboxSend.addEventListener('click', sendMessage);
-
-        chatboxInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                sendMessage();
+        function sendMessage() {
+            const message = chatboxInput ? chatboxInput.value.trim() : '';
+            if (message) {
+                console.log("Sending message: ", message);  // Log the message being sent
+                socket.emit('chat_message', { message: message });
+                chatboxInput.value = ''; // Clear the input field
+                if (chatboxBody) {
+                    chatboxBody.innerHTML += `<div class="user-message">${message}</div>`;
+                    chatboxBody.scrollTop = chatboxBody.scrollHeight; // Auto-scroll to the bottom
+                }
+            } else {
+                console.log("No message to send");  // Log when there's no message
             }
-        });
+        }
+    
+        if (chatboxSend) {
+            chatboxSend.addEventListener('click', sendMessage);
+            console.log("User clicked send message button");
+        }
+    
+        if (chatboxInput) {
+            chatboxInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault(); // Prevents default behavior like submitting a form
+                    console.log("Enter key pressed");  // Log key press
+                    sendMessage();
+                }
+            });
+        }
+    
+
+        if (startChatButton) {
+            startChatButton.addEventListener('click', function() {
+                console.log("Start chat button pressed");
+                chatbox.style.display = 'flex';
+                startChatButton.style.display = 'none';
+                chatboxInput.disabled = false;
+                chatboxSend.disabled = false;
+                socket.emit('start_chat'); // Emit a custom event
+            });
+        }
+
+        if (closeChatboxButton) {
+            closeChatboxButton.addEventListener('click', function() {
+                chatbox.style.display = 'none';
+                startChatButton.style.display = 'block';
+                chatboxInput.disabled = true;
+                chatboxSend.disabled = true;
+            });
+        }
 
         socket.on('chat_response', function(data) {
-            chatboxBody.innerHTML += `&lt;div class="bot-response"&gt;${data.response}&lt;/div&gt;`;
-            chatboxBody.scrollTop = chatboxBody.scrollHeight; // Auto-scroll to the bottom
+            console.log("Received response: ", data.response);  // Log the response received from the server
+            addMessage('bot', data.response);
         });
     </script>
 

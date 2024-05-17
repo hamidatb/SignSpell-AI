@@ -223,8 +223,8 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
     
     finally:
         # Clean up
-        cap.release()
-        cv2.destroyAllWindows()
+        cap.release()  # Release the camera
+        cv2.destroyAllWindows()  # Close all OpenCV windows
         
         # Calculate and print the quiz results
         emit_terminal_output("Quiz Results:")
@@ -336,6 +336,7 @@ def handle_quiz_answer(data):
                 letter_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
             
             quiz_letters(model, letter_quiz_marks, l_quiz_settings, IMAGES_DIR)
+    
 
         elif choice == "w":
             w_quiz_settings = word_quiz_settings()
@@ -361,6 +362,7 @@ def quiz_main():
         type_of_quiz()
     finally:
         quiz_running = False  # Ensure quiz_running is set to False when the quiz ends
+
 
 if __name__ == "__main__":
     quiz_main()

@@ -9,7 +9,7 @@ from gesture_model.quiz_mode import quiz_main
 from gesture_model.quiz_mode import handle_quiz_answer
 from gesture_model.practice_mode import main as practice_main
 from gesture_model.practice_mode import handle_practice_answer
-from gesture_model.feedback import ask_gpt
+from gesture_model.feedback import handle_user_choice, introduction_loop, continue_loop
 
 
 quiz_running = False  # Shared variable to indicate quiz state
@@ -112,13 +112,31 @@ def quiz_answer(data):
 def practice_answer(data):
     handle_practice_answer(data)
 
-# Chat functionality
+
+@socketio.on('start_chat')
+def start_chat():
+    intro_message = introduction_loop()
+    print(intro_message)
+    socketio.emit('chat_response', {'response': intro_message})
+
 @socketio.on('chat_message')
 def handle_chat_message(data):
-    user_message = data['message']
-    # Use the ask_gpt function to get a response
-    gpt_response = ask_gpt("Provide feedback", user_message, None)
-    socketio.emit('chat_response', {'response': gpt_response})
+    message = data['message']
+    print(message)
+    global username
+    try:
+        choice = int(message)
+        response_message = handle_user_choice(choice)
+    except ValueError:
+        response_message = "Please enter a valid option (1, 2, 3, or 4)."
+    socketio.emit('chat_response', {'response': response_message})
+    
+    continue_chat(response_message)
+
+def continue_chat(response_message):
+    cont_message = continue_loop(response_message)
+    print(cont_message)
+    socketio.emit('chat_response', {'response': cont_message})
 
 
 if __name__ == '__main__':
