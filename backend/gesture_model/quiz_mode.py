@@ -251,7 +251,7 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
     try:
         for i in range(word_quiz_settings["Amount of words to be quizzed on"]):
             target_word = select_quiz_word(used_words)  # Function to select a word
-            print(f"Word to display: {target_word}")
+            emit_terminal_output(f"Word to display: {target_word}")
             start_time = time.time()
             word_accuracies[target_word] = {'attempts': 0, 'correct': 0}
             word_accuracies[target_word]['attempts'] += 1
@@ -291,10 +291,10 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
         print("Word Quiz Results:\n")
         for word, stats in word_accuracies.items():
             accuracy = (stats['correct'] / stats['attempts']) * 100 if stats['attempts'] > 0 else 0
-            print(f"Word {word}: {accuracy:.2f}% accuracy")
+            emit_terminal_output(f"Word {word}: {accuracy:.2f}% accuracy")
         
         overall_accuracy = (total_correct_words / total_attempts) * 100 if total_attempts > 0 else 0
-        print(f"\nOverall word accuracy: {overall_accuracy:.2f}%")
+        emit_terminal_output(f"\nOverall word accuracy: {overall_accuracy:.2f}%")
 
         save_word_quiz(word_accuracies, "word_quiz_results.pkl")  # Save the quiz results
         return word_accuracies

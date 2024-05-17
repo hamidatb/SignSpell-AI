@@ -7,6 +7,10 @@ import threading
 import time
 from gesture_model.quiz_mode import quiz_main
 from gesture_model.quiz_mode import handle_quiz_answer
+from backend.gesture_model.old_practice_mode import main as practice_main
+from backend.gesture_model.old_practice_mode import handle_practice_answer
+
+
 
 quiz_running = False  # Shared variable to indicate quiz state
 practice_running = False
@@ -77,6 +81,15 @@ def start_quiz():
     socketio.emit('response', {'message': 'Starting quiz...'})
     threading.Thread(target=quiz_main).start()
 
+@socketio.on('start_practice')
+def start_practice():
+    global practice_running
+    practice_running = True  # Set practice_running to True when practice starts
+    print("Practice started")
+    socketio.emit('response', {'message': 'Starting practice...'})
+    threading.Thread(target=practice_main).start()
+
+
 @app.route('/terminate_quiz', methods=['POST'])
 def terminate_quiz():
     global quiz_running
@@ -84,10 +97,20 @@ def terminate_quiz():
     print("Quiz terminated.")
     return jsonify({"message": "Quiz terminated"})
 
+@app.route('/terminate_practice', methods=['POST'])
+def terminate_practice():
+    global practice_running
+    practice_running = False  # Set practice_running to False to stop the practice
+    print("Practice terminated.")
+    return jsonify({"message": "Practice terminated"})
 
 @socketio.on('quiz_answer')
 def quiz_answer(data):
     handle_quiz_answer(data)
+
+@socketio.on('practice_answer')
+def practice_answer(data):
+    handle_practice_answer(data)
 
 if __name__ == '__main__':
     socketio.start_background_task(target=send_frame_to_socketio)

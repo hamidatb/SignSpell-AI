@@ -3,7 +3,7 @@ import cv2
 import os
 import sqlite3
 from gesture_model.mode_settings import load_progress, save_progress
-from gesture_model.practice_mode import main as practice_main
+from backend.gesture_model.old_practice_mode import main as practice_main
 from gesture_model.quiz_mode import main as quiz_main
 
 app = Flask(__name__)

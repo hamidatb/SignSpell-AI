@@ -19,6 +19,7 @@ def emit_frame(frame):
     frame_encoded = base64.b64encode(buffer).decode('utf-8')
     socketio.emit('video_frame', {'frame': frame_encoded})
 
+
 def get_directory() -> str:
     # Getting the directory where this script file is located
     SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -51,8 +52,7 @@ def initialize_camera():
 def capture_and_process_frame(cap, hands):
     ret, frame = cap.read()
     if not ret:
-        emit_terminal_output("Failed to grab frame, retrying...")
-        return None, None  # Instead of exiting, return None to indicate failure
+        sys.exit("Failed to grab frame")
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = hands.process(frame_rgb)
     return frame, results
@@ -138,11 +138,11 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     text_width, _ = cv2.getTextSize(bottom_middle_text, font, 0.7, 2)[0]
     cv2.putText(frame, bottom_middle_text, ((frame.shape[1] - text_width) // 2, frame.shape[0] - 20), font, 0.7, text_color, 2)
 
-    emit_frame(frame)
+    cv2.imshow("Practice Mode", frame)
+
     return is_correct
 
 def practice_loop(model, progress, file_path, settings, images_dir):
-    global practice_running
     cap, hands = initialize_camera()
 
     # Adding a flag to control the outer loop (So the user can quit by pressing q)
@@ -156,7 +156,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
     
     for i in range(amount_of_letters):
         target_letter = select_letter(progress)
-        emit_terminal_output(f"Practice this letter: {target_letter}")
+        print(f"Practice this letter: {target_letter}")
         start_time = time.time()
 
         while True:
@@ -197,7 +197,7 @@ def practice_loop(model, progress, file_path, settings, images_dir):
 
 
         if exit_flag:
-            emit_terminal_output("Exiting the practice loop.")
+            print("Exiting the practice loop.")
             break
 
         amount_remaining -= 1
@@ -207,19 +207,19 @@ def practice_loop(model, progress, file_path, settings, images_dir):
     cv2.destroyAllWindows()
 
     if marks:  # Check if marks dictionary is not empty
-        emit_terminal_output("\nMarksheet:")
-        emit_terminal_output("Letter | Result    | Time Taken")
+        print("\nMarksheet:")
+        print("Letter | Result    | Time Taken")
         for letter, (result, time_taken) in sorted(marks.items()):
-            emit_terminal_output(f"{letter}      | {result} | {time_taken} seconds")
+            print(f"{letter}      | {result} | {time_taken} seconds")
         total_correct = sum(1 for result, _ in marks.values() if result == "Correct")
         final_score = round((total_correct / len(marks)) * 100, 2)
-        emit_terminal_output(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})\n")
+        print(f"Final Score: {final_score}% (Correct: {total_correct} out of {len(marks)})\n")
     else:
-        emit_terminal_output("No full attempts were made.")
+        print("No full attempts were made.")
     # Save final progress
     save_progress(progress, file_path)
 
-    emit_terminal_output(marks)
+    print(marks)
     return marks, progress
 
 def main():
