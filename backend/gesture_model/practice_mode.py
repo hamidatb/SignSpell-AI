@@ -11,8 +11,17 @@ from .mode_settings import load_progress, save_progress, practice_settings
 from .mode_settings import display_settings
 from socketio_setup import socketio  # Absolute import
 
+
+# Add the project root to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
 def emit_terminal_output(output):
     socketio.emit('terminal_output', {'output': output})
+
+def emit_question(question, options):
+    socketio.emit('practice_question', {'question': question, 'options': options})
 
 def emit_frame(frame):
     _, buffer = cv2.imencode('.jpg', frame)
@@ -142,59 +151,47 @@ def update_and_display(frame, target_letter, predicted_character, amount_remaini
     return is_correct
 
 def practice_loop(model, progress, file_path, settings, images_dir):
-    global practice_running
+    global practice_running, current_answer, current_target_letter
     cap, hands = initialize_camera()
-
     # Adding a flag to control the outer loop (So the user can quit by pressing q)
     exit_flag = False
-
     amount_of_letters = settings["Amount of letters to practice"]
     time_wanted = settings["Time for each letter (seconds)"]
-    
     amount_remaining = amount_of_letters - 1
     marks = {}
+    current_answer = None
+    current_target_letter = None
     
     for i in range(amount_of_letters):
         target_letter = select_letter(progress)
         emit_terminal_output(f"Practice this letter: {target_letter}")
         start_time = time.time()
-
         while True:
             time_elapsed = time.time() - start_time
             time_remaining = time_wanted - time_elapsed
             if time_remaining <= 0:
                 break  # Exit the loop if the time is up
-        
-
             frame, results = capture_and_process_frame(cap, hands)
             predicted_character, x_, y_, height, width = make_prediction(model, results, frame)
             is_correct = update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir, x_, y_, height, width)
-
             key = cv2.waitKey(1)
             if key == ord('q'):
                 exit_flag = True
                 break
-
             end_time = time.time()
             time_taken = round(end_time - start_time, 2)
             
-            if is_correct:
+            if is_correct or (current_answer and current_answer == target_letter):
                 # If the prediction is correct, display the green "Correct!" feedback for 1 second
                 update_and_display(frame, target_letter, predicted_character, amount_remaining, time_remaining, images_dir, x_, y_, height, width)
-                
-    
                 progress[target_letter]['correct'] += 1
                 progress[target_letter]['times'].append(time_taken)
                 marks[target_letter] = ("Correct", time_taken)
-
                 cv2.waitKey(1000)  # Wait for 1s
-
                 break  # Then break out of the loop to move on to the next letter
             else:
                 marks[target_letter] = ("Incorrect", time_taken)
-
             progress[target_letter]['attempts'] += 1
-
 
         if exit_flag:
             emit_terminal_output("Exiting the practice loop.")
@@ -222,7 +219,20 @@ def practice_loop(model, progress, file_path, settings, images_dir):
     emit_terminal_output(marks)
     return marks, progress
 
+@socketio.on('practice_answer')
+def handle_practice_answer(data):
+    # Assuming the data contains the answer and the target letter
+    answer = data['answer'].strip().lower()
+    target_letter = data['target_letter'].strip().lower()
+    
+    # Emit the response back to the client
+    if answer == target_letter:
+        emit_terminal_output(f"Correct! The letter was {target_letter.upper()}.")
+    else:
+        emit_terminal_output(f"Incorrect! The letter was {target_letter.upper()}. You entered {answer.upper()}.")
+
 def main():
+    global practice_running
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
     model = open_model(SCRIPT_DIR, MODEL_DIR)
     settings = practice_settings()

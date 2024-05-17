@@ -9,13 +9,13 @@ import base64
 from .test_classifier import open_model
 from .mode_settings import save_letter_quiz, save_word_quiz
 from .mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
+from socketio_setup import socketio  # Absolute import
 
 # Add the project root to the Python path
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 
-from socketio_setup import socketio  # Absolute import
 
 def emit_terminal_output(output):
     socketio.emit('terminal_output', {'output': output})

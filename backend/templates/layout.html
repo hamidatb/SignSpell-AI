@@ -1,4 +1,3 @@
-<!-- templates/layout.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,6 +23,19 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+
+    <footer>
+        <p>Check out our <a href="https://github.com/hamidatb/SignSpell-AI" target="_blank">GitHub Repository</a></p>
+    </footer>
+
+    <div id="chatbox" class="chatbox">
+        <div id="chatbox-header" class="chatbox-header">Chat with ASL Tutor</div>
+        <div id="chatbox-body" class="chatbox-body"></div>
+        <div class="chatbox-input-container">
+            <input type="text" id="chatbox-input" class="chatbox-input" placeholder="Type your message here...">
+            <button id="chatbox-send" class="chatbox-send">Send</button>
+        </div>
+    </div>
 
     <script>
         const socket = io();
@@ -88,6 +100,35 @@
                 }
             }
         });
+
+        // Chatbox functionality
+        const chatboxInput = document.getElementById('chatbox-input');
+        const chatboxBody = document.getElementById('chatbox-body');
+        const chatboxSend = document.getElementById('chatbox-send');
+
+        function sendMessage() {
+            const message = chatboxInput.value.trim();
+            if (message) {
+                socket.emit('chat_message', { message: message });
+                chatboxInput.value = ''; // Clear the input field
+                chatboxBody.innerHTML += `&lt;div class="user-message"&gt;${message}&lt;/div&gt;`;
+                chatboxBody.scrollTop = chatboxBody.scrollHeight; // Auto-scroll to the bottom
+            }
+        }
+
+        chatboxSend.addEventListener('click', sendMessage);
+
+        chatboxInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        socket.on('chat_response', function(data) {
+            chatboxBody.innerHTML += `&lt;div class="bot-response"&gt;${data.response}&lt;/div&gt;`;
+            chatboxBody.scrollTop = chatboxBody.scrollHeight; // Auto-scroll to the bottom
+        });
     </script>
+
 </body>
 </html>

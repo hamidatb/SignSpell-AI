@@ -8,6 +8,8 @@ import time
 from gesture_model.quiz_mode import quiz_main
 from gesture_model.quiz_mode import handle_quiz_answer
 from gesture_model.practice_mode import main as practice_main
+from gesture_model.practice_mode import handle_practice_answer
+from gesture_model.feedback import ask_gpt
 
 
 quiz_running = False  # Shared variable to indicate quiz state
@@ -75,7 +77,7 @@ def on_connect():
 def start_quiz():
     global quiz_running
     quiz_running = True  # Set quiz_running to True when the quiz starts
-    print("Quiz started")
+    print("\nQuiz started\n")
     socketio.emit('response', {'message': 'Starting quiz...'})
     threading.Thread(target=quiz_main).start()
 
@@ -83,7 +85,7 @@ def start_quiz():
 def start_practice():
     global practice_running
     practice_running = True  # Set practice_running to True when practice starts
-    print("Practice started")
+    print("\nPractice started\n")
     socketio.emit('response', {'message': 'Starting practice...'})
     threading.Thread(target=practice_main).start()
 
@@ -108,7 +110,16 @@ def quiz_answer(data):
 
 @socketio.on('practice_answer')
 def practice_answer(data):
-    pass
+    handle_practice_answer(data)
+
+# Chat functionality
+@socketio.on('chat_message')
+def handle_chat_message(data):
+    user_message = data['message']
+    # Use the ask_gpt function to get a response
+    gpt_response = ask_gpt("Provide feedback", user_message, None)
+    socketio.emit('chat_response', {'response': gpt_response})
+
 
 if __name__ == '__main__':
     socketio.start_background_task(target=send_frame_to_socketio)

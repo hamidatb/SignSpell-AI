@@ -217,3 +217,70 @@ footer {
 .action-button:hover {
     background-color: #0056b3;
 }
+.chatbox {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 300px;
+    background-color: #f1f1f1;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.chatbox-header {
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    border-radius: 10px 10px 0 0;
+}
+
+.chatbox-body {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    border-top: 1px solid #ccc;
+}
+
+.chatbox-input-container {
+    display: flex;
+    border-top: 1px solid #ccc;
+    border-radius: 0 0 10px 10px;
+}
+
+.chatbox-input {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 0 0 0 10px;
+}
+
+.chatbox-send {
+    padding: 10px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 0 0 10px 0;
+    cursor: pointer;
+}
+
+.chatbox-send:hover {
+    background-color: #0056b3;
+}
+
+.user-message, .bot-response {
+    margin: 5px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.user-message {
+    background-color: #d1e7dd;
+    align-self: flex-end;
+}
+
+.bot-response {
+    background-color: #f8d7da;
+    align-self: flex-start;
+}

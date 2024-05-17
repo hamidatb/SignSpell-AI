@@ -1,7 +1,7 @@
 import os
 import sys
 from openai import OpenAI
-from backend.gesture_model.old_practice_mode import get_directory
+from .practice_mode import get_directory
 from dotenv import load_dotenv
 
 # Loading the envirnoment variables from the .env file (API key)
@@ -100,7 +100,7 @@ def quiz_imports():
     from test_classifier import open_model
     from mode_settings import save_letter_quiz, save_word_quiz
     from mode_settings import display_settings, present_user_options_for_marks, letter_quiz_settings, word_quiz_settings
-    from backend.gesture_model.old_practice_mode import get_letter_image
+    from practice_mode import get_letter_image
 
 def practice_feedback() -> str:
     practice_imports()
