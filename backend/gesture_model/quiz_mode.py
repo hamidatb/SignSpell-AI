@@ -163,6 +163,7 @@ def select_quiz_letter(progress):
     return random.choices(letters, weights)[0]
 
 def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
+    global quiz_running
     cap, hands = initialize_camera()
     
     total_attempts = 0
@@ -237,7 +238,7 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
 
         # Save the quiz marks
         save_letter_quiz(letter_accuracies, "update marks")
-        return letter_accuracies
+        quiz_running = False
     
 def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
     cap, hands = initialize_camera()
@@ -349,13 +350,18 @@ def handle_quiz_answer(data):
             emit_terminal_output("Thank you for trying SignSpell!")
             return
 
-        
-
-def main():
+    
+def quiz_main():
+    global quiz_running
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
     model = open_model(SCRIPT_DIR, MODEL_DIR)
-    type_of_quiz()
+
+    try:
+        type_of_quiz()
+    finally:
+        quiz_running = False  # Ensure quiz_running is set to False when the quiz ends
 
 if __name__ == "__main__":
-    main()
+    quiz_main()
+
 

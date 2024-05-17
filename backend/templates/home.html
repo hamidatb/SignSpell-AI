@@ -1,48 +1,28 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ASL Learner</title>
-    <link rel="stylesheet" href="../static/styles/styles.css"> <!-- Link to CSS file -->
-    <script src="/static/js/app.js" defer></script> <!-- Link to JavaScript file -->
-</head>
-<body>
-    <header>
-        <h1>ASL Learner</h1>
-        <nav>
-            <ul>
-                <li><a href="login.html">Login</a></li>
-                <li><a href="signup.html">Signup</a></li>
-            </ul>
-        </nav>
-    </header>
+<!-- templates/home.html -->
 
-    <main>
-        <div id="homepage">
-            <!-- Content for the homepage -->
-        </div>
+{% extends "layout.html" %}
 
-        <div id="alphabet">
-            <!-- Interactive alphabet section -->
-        </div>
+{% block title %}Home{% endblock %}
 
-        <div id="quiz-mode">
-            <!-- Quiz mode interface -->
-        </div>
+{% block content %}
+    <div id="homepage">
+        <!-- Content for the homepage -->
+    </div>
 
-        <div id="practice-mode">
-            <img src="/static/ASL_FingerSpelling_Image.png" alt="Hand model for practice">
-            <!-- Additional content for practice mode -->
-        </div>
+    <div id="alphabet">
+        <!-- Interactive alphabet section -->
+    </div>
 
-        <div id="settings">
-            <!-- User settings and profile info -->
-        </div>
-    </main>
+    <div id="quiz-mode">
+        <!-- Quiz mode interface -->
+    </div>
 
-    <footer>
-        <p>&copy; 2024 ASL Learner</p>
-    </footer>
-</body>
-</html>
+    <div id="practice-mode">
+        <img src="{{ url_for('static', filename='ASL_FingerSpelling_Image.png') }}" alt="Hand model for practice">
+        <!-- Additional content for practice mode -->
+    </div>
+
+    <div id="settings">
+        <!-- User settings and profile info -->
+    </div>
+{% endblock %}

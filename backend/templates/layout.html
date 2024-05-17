@@ -1,0 +1,73 @@
+<!-- templates/layout.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Quiz Mode{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+</head>
+<body>
+    <header>
+        <h1>ASL Learner</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('signup') }}">Signup</a></li>
+                <li><a href="{{ url_for('quiz') }}">Quiz Mode</a></li>
+                <li><a href="{{ url_for('practice') }}">Practice Mode</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        const socket = io();
+
+        socket.on('video_frame', function(data) {
+            const image = document.getElementById('video-frame');
+            image.src = 'data:image/jpeg;base64,' + data.frame;
+        });
+
+        socket.on('terminal_output', function(data) {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML += data.output + '<br/>';
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('quiz_question', function(data) {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML += `<strong>${data.question}</strong><br/>${data.options}<br/>`;
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('response', function(data) {
+            console.log(data.message);
+        });
+
+        document.getElementById('start-button').addEventListener('click', function() {
+            socket.emit('start_quiz');
+        });
+
+        document.getElementById('terminate-button').addEventListener('click', function() {
+            fetch('/terminate_quiz', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data.message));
+        });
+
+        document.getElementById('quiz-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                if (input) {
+                    socket.emit('quiz_answer', { answer: input });
+                    e.target.value = ''; // Clear the input field
+                }
+            }
+        });
+    </script>
+</body>
+</html>

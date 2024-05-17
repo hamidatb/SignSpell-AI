@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Mode</title>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <style>
+        #video-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+        }
+        #terminal-output {
+            width: 80%;
+            height: 300px;
+            background-color: #000;
+            color: #0f0;
+            padding: 10px;
+            overflow-y: auto;
+            font-family: monospace;
+            margin: 20px auto;
+        }
+        #start-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        #quiz-input {
+            display: block;
+            margin: 20px auto;
+            padding: 10px;
+            font-size: 16px;
+            width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div id="video-container">
+        <img id="video-frame" src="" alt="Video Frame" />
+    </div>
+    <div id="terminal-output"></div>
+    <input id="quiz-input" type="text" placeholder="Enter your choice here">
+    <button id="start-button">Start Quiz</button>
+
+    <script>
+        const socket = io();
+
+        socket.on('video_frame', function(data) {
+            const image = document.getElementById('video-frame');
+            image.src = 'data:image/jpeg;base64,' + data.frame;
+        });
+
+        socket.on('terminal_output', function(data) {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML += data.output + '<br/>';
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('quiz_question', function(data) {
+            const terminal = document.getElementById('terminal-output');
+            terminal.innerHTML += `<strong>${data.question}</strong><br/>${data.options}<br/>`;
+            terminal.scrollTop = terminal.scrollHeight; // Auto-scroll to the bottom
+        });
+
+        socket.on('response', function(data) {
+            console.log(data.message);
+        });
+
+        document.getElementById('start-button').addEventListener('click', function() {
+            socket.emit('start_quiz');
+        });
+
+        document.getElementById('quiz-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                if (input) {
+                    socket.emit('quiz_answer', { answer: input });
+                    e.target.value = ''; // Clear the input field
+                }
+            }
+        });
+    </script>
+</body>
+</html>
