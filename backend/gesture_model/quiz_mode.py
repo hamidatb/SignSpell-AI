@@ -355,7 +355,8 @@ def quiz_main():
     global quiz_running
     SCRIPT_DIR, MODEL_DIR, IMAGES_DIR = get_directory()
     model = open_model(SCRIPT_DIR, MODEL_DIR)
-
+    cap, hands = initialize_camera()
+    
     try:
         type_of_quiz()
     finally:

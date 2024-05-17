@@ -7,9 +7,7 @@ import threading
 import time
 from gesture_model.quiz_mode import quiz_main
 from gesture_model.quiz_mode import handle_quiz_answer
-from backend.gesture_model.old_practice_mode import main as practice_main
-from backend.gesture_model.old_practice_mode import handle_practice_answer
-
+from gesture_model.practice_mode import main as practice_main
 
 
 quiz_running = False  # Shared variable to indicate quiz state
@@ -57,7 +55,7 @@ def generate_frames():
 
 def send_frame_to_socketio():
     while True:
-        global quiz_running
+        global quiz_running, practice_running
         success, frame = cap.read()
         if success:
             _, buffer = cv2.imencode('.jpg', frame)
@@ -110,7 +108,7 @@ def quiz_answer(data):
 
 @socketio.on('practice_answer')
 def practice_answer(data):
-    handle_practice_answer(data)
+    pass
 
 if __name__ == '__main__':
     socketio.start_background_task(target=send_frame_to_socketio)

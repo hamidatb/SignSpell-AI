@@ -23,15 +23,27 @@ header h1 {
 }
 
 nav ul {
-    list-style: none;
+    list-style-type: none;
     margin: 0;
     padding: 0;
     display: flex;
+    justify-content: center;
 }
 
 nav li {
     margin: 0 10px;
 }
+
+nav ul li {
+    margin: 0 15px;
+}
+
+nav ul li a {
+    color: white;
+    text-decoration: none;
+    font-size: 18px;
+}
+
 
 nav a {
     color: #fff;
@@ -55,9 +67,10 @@ main {
     margin-top: 20px;
 }
 
+
 #terminal-output {
     width: 80%;
-    height: 300px;
+    height: 200px;
     background-color: #000;
     color: #0f0;
     padding: 10px;
@@ -84,6 +97,16 @@ main {
 }
 
 #quiz-input {
+    display: block;
+    margin: 20px auto;
+    padding: 10px;
+    font-size: 16px;
+    width: 300px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+input[type="text"] {
     display: block;
     margin: 20px auto;
     padding: 10px;
@@ -176,4 +199,21 @@ footer {
 .section img {
     width: 100%;
     border-radius: 8px;
+}
+
+.action-button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.action-button:hover {
+    background-color: #0056b3;
 }

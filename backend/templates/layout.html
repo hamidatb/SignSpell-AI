@@ -68,6 +68,26 @@
                 }
             }
         });
+
+        document.getElementById('start-practice-button')?.addEventListener('click', function() {
+            socket.emit('start_practice');
+        });
+
+        document.getElementById('terminate-practice-button')?.addEventListener('click', function() {
+            fetch('/terminate_practice', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => console.log(data.message));
+        });
+
+        document.getElementById('practice-input')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const input = e.target.value.trim();
+                if (input) {
+                    socket.emit('practice_answer', { answer: input });
+                    e.target.value = ''; // Clear the input field
+                }
+            }
+        });
     </script>
 </body>
 </html>
