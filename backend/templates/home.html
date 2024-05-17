@@ -5,24 +5,25 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-    <div id="homepage">
-        <!-- Content for the homepage -->
-    </div>
-
-    <div id="alphabet">
-        <!-- Interactive alphabet section -->
-    </div>
-
-    <div id="quiz-mode">
-        <!-- Quiz mode interface -->
-    </div>
-
-    <div id="practice-mode">
-        <img src="{{ url_for('static', filename='ASL_FingerSpelling_Image.png') }}" alt="Hand model for practice">
-        <!-- Additional content for practice mode -->
-    </div>
-
-    <div id="settings">
-        <!-- User settings and profile info -->
+    <div class="home-container">
+        <h2>Welcome to ASL Learner</h2>
+        <p>Learn American Sign Language through interactive quizzes and practice modes.</p>
+        <div class="home-sections">
+            <div class="section">
+                <h3>Interactive Alphabet</h3>
+                <p>Learn the ASL alphabet with visual guides and practice.</p>
+                <img src="{{ url_for('static', filename='ASL_FingerSpelling_Image.png') }}" alt="ASL Alphabet">
+            </div>
+            <div class="section">
+                <h3>Quiz Mode</h3>
+                <p>Test your ASL skills with our quiz mode.</p>
+                <a href="{{ url_for('quiz') }}" class="btn">Start Quiz</a>
+            </div>
+            <div class="section">
+                <h3>Practice Mode</h3>
+                <p>Improve your ASL skills through practice.</p>
+                <a href="{{ url_for('practice') }}" class="btn">Start Practice</a>
+            </div>
+        </div>
     </div>
 {% endblock %}
