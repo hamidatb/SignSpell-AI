@@ -131,12 +131,11 @@ def handle_chat_message(data):
         response_message = "Please enter a valid option (1, 2, 3, or 4)."
     socketio.emit('chat_response', {'response': response_message})
     
-    continue_chat(response_message)
-
 def continue_chat(response_message):
     cont_message = continue_loop(response_message)
     print(cont_message)
     socketio.emit('chat_response', {'response': cont_message})
+
 
 
 if __name__ == '__main__':

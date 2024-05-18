@@ -173,7 +173,6 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
     letter_accuracies = {chr(65 + i): {'attempts': 0, 'correct': 0} for i in range(26)}
     print("Initialized accuracies")
     try:
-        print("Failed at try")
         for i in range(letter_quiz_settings["Amount of letters to be quizzed on"]):
             target_letter = select_quiz_letter(letter_quiz_marks)
             emit_terminal_output(f"Target letter to display: {target_letter}")
@@ -285,7 +284,6 @@ def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
 
     finally:
         cap.release()
-        cv2.destroyAllWindows()
 
         # Calculate and display the quiz results
         print("Word Quiz Results:\n")
@@ -350,6 +348,7 @@ def handle_quiz_answer(data):
         elif choice == "q":
             emit_terminal_output("Thank you for trying SignSpell!")
             return
+
 
     
 def quiz_main():

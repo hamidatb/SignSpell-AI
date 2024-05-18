@@ -1,7 +1,9 @@
 /* static/styles.css */
+/* Import the Poppins font */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&amp;display=swap');
 
 body {
-    font-family: 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'Poppins', Arial, sans-serif;
     background-color: #f5f5f5;
     margin: 0;
     padding: 0;
@@ -11,7 +13,7 @@ body {
 header {
     background-color: #007bff;
     color: #fff;
-    padding: 10px 20px;
+    padding: 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -64,21 +66,85 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-top: 20px;
+    margin: 20px auto; /* Center the video container */
+    border: 2px solid #007bff;
+    border-radius: 15px;
+    padding: 10px;
+    background-color: #fff;
+    width: 80%; /* Set a consistent width */
+    max-width: 1280px; /* Ensure max width */
 }
 
+#video-frame {
+    width: 100%; /* Ensure the video frame takes full width */
+    max-width: 1280px; /* Set the max width */
+    height: auto; /* Keep aspect ratio */
+    border-radius: 15px;
+}
 
 #terminal-output {
+    display: flex;
     width: 80%;
     height: 200px;
-    background-color: #000;
-    color: #0f0;
+    background-color: lightblue; /* Blue background */
+    color: black; 
     padding: 10px;
     overflow-y: auto;
     font-family: monospace;
     margin: 20px auto;
     border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+.input-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px auto;
+    width: 80%;
+    max-width: 500px;
+}
+
+.run-buttons {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 30px auto;
+    width: 80%;
+    max-width: 500px;
+}
+
+
+#quiz-input {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #007bff;
+    border-radius: 5px 0 0 5px;
+    box-sizing: border-box;
+    background-color: #f1f1f1;
+}
+
+#quiz-input:focus {
+    border-color: #0056b3;
+    outline: none;
+}
+
+#send-quiz-response {
+    padding: 10px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#send-quiz-response:hover {
+    background-color: #0056b3;
+}
+
 
 #start-button, #terminate-button {
     display: block;
@@ -106,15 +172,20 @@ main {
     border-radius: 5px;
 }
 
-input[type="text"] {
-    display: block;
-    margin: 20px auto;
+
+input[type="text"],
+input[type="username"],
+input[type="password"],
+input[type="email"] {
+    width: 100%;
     padding: 10px;
     font-size: 16px;
-    width: 300px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    margin-bottom: 10px;
+    box-sizing: border-box;
 }
+
 
 footer {
     display: flex;
@@ -154,6 +225,11 @@ footer a:hover {
     margin: 40px auto;
 }
 
+.bottom-image {
+    align-self: flex-end; /* Align the image at the bottom */
+    margin-top: auto; /* Push the image to the bottom */
+}
+
 .form-container h2 {
     margin-top: 0;
     text-align: center;
@@ -186,11 +262,14 @@ footer a:hover {
     border-radius: 5px;
     cursor: pointer;
     text-align: center;
+    box-sizing: border-box;
+    margin-top: 10px; /* Space between button and image */
 }
 
 .btn:hover {
     background-color: #0056b3;
 }
+
 
 .home-container {
     text-align: center;
@@ -200,15 +279,30 @@ footer a:hover {
 .home-sections {
     display: flex;
     justify-content: space-around;
-    margin-top: 20px;
+    align-items: stretch; /* Stretch sections to the same height */
+    flex-wrap: wrap;
+    gap: 20px; /* Add space between sections */
+}
+.header-image {
+    height: 30px; /* Adjust height as needed */
+    width: auto;
 }
 
+
 .section {
+    display: flex;
     background-color: #fff;
+    flex-direction: column;
+    justify-content: space-between; /* Distribute space between items */
+    align-items: center;
+    border: 1px solid #ddd;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    max-width: 30%;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    flex: 1;
+    min-width: 300px; /* Adjust the min-width as needed */
+    max-width: 300px; /* Adjust the max-width as needed */
+    margin: 0 10px; /* Space out sections */
 }
 
 .section h3 {
@@ -241,7 +335,10 @@ footer a:hover {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 300px;
+    width: 90%; /* Make the width responsive */
+    max-width: 400px; /* Set a maximum width */
+    height: 60%; /* Make the height responsive */
+    max-height: 400px; /* Set a maximum height */
     background-color: #f1f1f1;
     border: none;
     border-radius: 15px;
@@ -257,11 +354,37 @@ footer a:hover {
     color: white;
     text-align: center;
     border-radius: 15px 15px 0 0;
+    position: relative; /* For positioning the close button */
+}
+
+.close-chatbox {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.close-chatbox:hover {
+    background-color: lightblue;
+}
+
+.start-chat {
+    position: flex;
+    background: lightgray;
+    border: none;
+    color: black;
+    font-size: 17px;
+    cursor: pointer;
+    border-radius: 15px 15px 15px 15px;
+    padding: 10px;
 }
 
 .chatbox-body {
     flex: 1;
-    max-height: 200px;
     overflow-y: auto;
     padding: 10px;
     background-color: #E7F3FE;
@@ -276,7 +399,7 @@ footer a:hover {
     border-radius: 0 0 15px 15px;
 }
 
-.chatbox-input {
+#chatbox-input {
     flex: 1;
     padding: 10px;
     border: none;
@@ -291,6 +414,10 @@ footer a:hover {
     color: white;
     border-radius: 0 15px 15px 0;
     cursor: pointer;
+    height: 100%; /* Ensure the button height matches the input height */
+    display: flex;
+    align-items: center; /* Center the text vertically */
+    justify-content: center; /* Center the text horizontally */
 }
 
 .chatbox-send:hover {
@@ -317,4 +444,21 @@ footer a:hover {
     border-bottom-left-radius: 0; /* Pointed corner for bot responses */
 }
 
+/* Media Queries for Responsiveness */
+@media (max-width: 600px) {
+    .chatbox {
+        width: 100%;
+        height: 70%;
+        bottom: 0;
+        right: 0;
+        border-radius: 0;
+    }
 
+    .chatbox-header {
+        border-radius: 0;
+    }
+
+    .chatbox-input-container {
+        border-radius: 0;
+    }
+    }

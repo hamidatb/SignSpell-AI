@@ -5,10 +5,13 @@
 
 {% block content %}
     <div id="video-container">
-        <img id="video-frame" src="" alt="Video Frame" />
+        <img id="video-frame" src="../static/graphics/qm_pm_pics/practice_mode.png" alt="Video Frame" />
     </div>
     <div id="terminal-output"></div>
-    <input id="practice-input" type="text" placeholder="Enter your choice here">
+    <div class="input-container">
+        <input id="practice-input" type="text" placeholder="Enter your choice here">
+        <button class="action-button" id="send-practice-response">Send Response</button>
+    </div>
     <button class="action-button" id="start-practice-button">Start Practice</button>
     <button class="action-button" id="terminate-practice-button">End Practice</button>
 {% endblock %}

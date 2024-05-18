@@ -2,15 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Quiz Mode{% endblock %}</title>
+    <title>{% block title %}SignSpell-AI{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="icon" href="{{ url_for('static', filename='graphics/logo.png') }}" type="image/x-icon">
+
     <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
 </head>
 <body>
     <header>
-        <h1>ASL Learner</h1>
+        <h1>SignSpell-AI</h1>
         <nav>
             <ul>
+                <li class="logo">
+                    <a href="{{ url_for('index') }}">
+                        <img src="{{ url_for('static', filename='graphics/logo.png') }}" alt="SignSpell-AI Logo", class="header-image">
+                    </a>
+                </li>
                 <li><a href="{{ url_for('index') }}">Home</a></li>
                 <li><a href="{{ url_for('login') }}">Login</a></li>
                 <li><a href="{{ url_for('signup') }}">Signup</a></li>
@@ -26,12 +33,12 @@
 
     <footer>
         <div>Check out our <a href="https://github.com/hamidatb/SignSpell-AI" target="_blank">GitHub Repository</a></div>
-        <div> <button id="start-chat" class="chatbox-send">Start SignSpell-AI Tutor Chat</button></div>
+        <div> <button id="start-chat" class="start-chat">Start SignSpell-AI Tutor Chat</button></div>
     </footer>
 
     <div id="chatbox" class="chatbox">
         <div id="chatbox-header" class="chatbox-header">
-            Chat with ASL Tutor
+            Chat with SignSpell-AI
             <button id="close-chatbox" class="close-chatbox">x</button>
         </div>
         <div id="chatbox-body" class="chatbox-body"></div>
@@ -200,6 +207,7 @@
                 startChatButton.style.display = 'block';
                 chatboxInput.disabled = true;
                 chatboxSend.disabled = true;
+                chatboxBody.innerHTML = ''; // Clear the chat messages
             });
         }
 
@@ -211,3 +219,6 @@
 
 </body>
 </html>
+
+
+

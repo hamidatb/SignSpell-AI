@@ -5,6 +5,27 @@ This holds the information for both the quiz and practice mode settings.
 import pickle
 import os
 import cv2
+import sys
+import base64
+from socketio_setup import socketio  # Absolute import
+
+# Add the project root to the Python path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+
+
+def emit_terminal_output(output):
+    socketio.emit('terminal_output', {'output': output})
+
+def emit_question(question, options):
+    socketio.emit('quiz_question', {'question': question, 'options': options})
+
+def emit_frame(frame):
+    _, buffer = cv2.imencode('.jpg', frame)
+    frame_encoded = base64.b64encode(buffer).decode('utf-8')
+    socketio.emit('video_frame', {'frame': frame_encoded})
+
 
 def display_settings():
     # Define colors for the boxes and text
@@ -20,12 +41,13 @@ def display_settings():
 def practice_settings():
     default_settings = {"Time for each letter (seconds)":5,
                         "Amount of letters to practice":5}
-    print(f"\n")
+    emit_terminal_output(f"\n")
     for key, value in default_settings.items():
-        print(f"{key}:{value}")
-    print(f"\n")
-    change_settings = input("Would you like to change any of the default settings? (y/n): ").strip().lower()
-    print(f"\n")
+        emit_terminal_output(f"{key}:{value}")
+    emit_terminal_output(f"\n")
+    emit_terminal_output("Would you like to change any of the default settings? (y/n): ")
+    change_settings = input("").strip().lower()
+    emit_terminal_output(f"\n")
     if change_settings == "y":
         while True:
             try:
@@ -46,11 +68,12 @@ def practice_settings():
 def letter_quiz_settings():
     default_settings = {"Time for each letter (seconds)":5,
                         "Amount of letters to be quizzed on":5}
-    print(f"\n")
+    emit_terminal_output(f"\n")
     for key, value in default_settings.items():
-        print(f"{key}: {value}\n")
+        emit_terminal_output(f"{key}: {value}\n")
+    emit_terminal_output("Would you like to change any of the default quiz settings? (y/n):")
     change_settings = input("Would you like to change any of the default quiz settings? (y/n): ").strip().lower()
-    print(f"\n")
+    emit_terminal_output(f"\n")
     if change_settings == "y":
         while True:
             try:

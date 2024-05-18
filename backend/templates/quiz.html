@@ -5,10 +5,15 @@
 
 {% block content %}
     <div id="video-container">
-        <img id="video-frame" src="" alt="Video Frame" />
+        <img id="video-frame" src="../static/graphics/qm_pm_pics/quiz_mode.png" alt="Quiz-Mode Video Frame" />
     </div>
     <div id="terminal-output"></div>
-    <input id="quiz-input" type="text" placeholder="Enter your choice here">
-    <button class="action-button" id="start-button">Start Quiz</button>
-    <button class="action-button" id="terminate-button">Terminate Quiz</button>
+    <div class="input-container">
+        <input id="quiz-input" type="text" placeholder="Enter your responses here.">
+        <button class="action-button" id="send-quiz-response">Send Response</button>
+    </div>
+    <div id="run-buttons" class="run-buttons">
+        <button class="action-button" id="start-button">Start Quiz</button>
+        <button class="action-button" id="terminate-button">Terminate Quiz</button>
+    </div>
 {% endblock %}
