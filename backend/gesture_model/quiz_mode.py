@@ -221,10 +221,6 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
                 break
     
     finally:
-        # Clean up
-        cap.release()  # Release the camera
-        cv2.destroyAllWindows()  # Close all OpenCV windows
-        
         # Calculate and print the quiz results
         emit_terminal_output("Quiz Results:")
         for letter, stats in letter_accuracies.items():
@@ -239,7 +235,14 @@ def quiz_letters(model, letter_quiz_marks, letter_quiz_settings, images_dir):
         save_letter_quiz(letter_accuracies, "update marks")
         quiz_running = False
     
+    quiz_running = False
+    cap.release()  # Release the camera
+    cv2.destroyAllWindows()  # Close all OpenCV windows
+
+    return quiz_running
+    
 def quiz_words(model, word_quiz_marks, word_quiz_settings, images_dir):
+    global quiz_running
     cap, hands = initialize_camera()
 
     total_attempts = 0
@@ -333,8 +336,8 @@ def handle_quiz_answer(data):
             if letter_quiz_marks == None:
                 letter_quiz_marks = save_letter_quiz(None, "reset marks") # returns an empty dict of marks that have been saved to a file.
             
-            quiz_letters(model, letter_quiz_marks, l_quiz_settings, IMAGES_DIR)
-    
+            quiz_running = quiz_letters(model, letter_quiz_marks, l_quiz_settings, IMAGES_DIR)
+            return quiz_running
 
         elif choice == "w":
             w_quiz_settings = word_quiz_settings()
@@ -360,8 +363,8 @@ def quiz_main():
     try:
         type_of_quiz()
     finally:
-        quiz_running = False  # Ensure quiz_running is set to False when the quiz ends
-
+        cap.release()  # Release the camera
+        cv2.destroyAllWindows()  # Close all OpenCV windows
 
 if __name__ == "__main__":
     quiz_main()

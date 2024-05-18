@@ -106,7 +106,8 @@ def terminate_practice():
 
 @socketio.on('quiz_answer')
 def quiz_answer(data):
-    handle_quiz_answer(data)
+    global quiz_running
+    quiz_running = handle_quiz_answer(data)
 
 @socketio.on('practice_answer')
 def practice_answer(data):
@@ -137,8 +138,8 @@ def continue_chat(response_message):
     socketio.emit('chat_response', {'response': cont_message})
 
 
-
 if __name__ == '__main__':
     socketio.start_background_task(target=send_frame_to_socketio)
     socketio.run(app, debug=True)
+
     cv2.destroyAllWindows()
