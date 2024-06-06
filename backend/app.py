@@ -110,13 +110,14 @@ def quiz_answer(data):
     quiz_running = handle_quiz_answer(data)
 
 @socketio.on('practice_answer')
+# Handle the practice answer
 def practice_answer(data):
     handle_practice_answer(data)
 
 
 @socketio.on('start_chat')
 def start_chat():
-    # Stat the char workflow
+    # Stat the chat workflow
     intro_message = introduction_loop()
     print(intro_message)
     socketio.emit('chat_response', {'response': intro_message})
