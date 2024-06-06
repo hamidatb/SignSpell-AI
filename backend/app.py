@@ -116,6 +116,7 @@ def practice_answer(data):
 
 @socketio.on('start_chat')
 def start_chat():
+    # Stat the char workflow
     intro_message = introduction_loop()
     print(intro_message)
     socketio.emit('chat_response', {'response': intro_message})
