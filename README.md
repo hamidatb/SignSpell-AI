@@ -3,8 +3,16 @@
 ## Welcome to SignSpell-AI
 SignSpell-AI is an advanced web application designed to make learning sign language accessible, engaging, and effective. Utilizing the power of artificial intelligence, this platform offers real-time gesture recognition and personalized feedback through integration with the OpenAI GPT-4 API. My aim is to create an adaptive learning environment where users can not only learn but also practice sign language interactively.
 
+
 ## Project Vision
 My vision is to democratize the learning of sign language, making it as simple and accessible as using any everyday app. We believe in leveraging technology to break communication barriers and enrich lives, particularly in underserved communities.
+
+<div align="center">
+  <img src="backend/static/SignSpell AI.jpeg" alt="Me using SignSpell AI" width="500"/>
+  <br>
+  <p><i>A screenshot of me using SignSpell to learn the ASL finger spelling alphabet</i></p>
+</div>
+
 
 ## Key Features
 - **Real-Time Gesture Recognition**: Harness computer vision to decode sign language gestures in real-time, offering immediate feedback.
