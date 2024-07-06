@@ -9,13 +9,6 @@ https://github.com/hamidatb/SignSpell-AI/assets/107907514/c12ad993-b02e-421f-9bd
 ## Project Vision
 My vision is to democratize the learning of sign language, making it as simple and accessible as using any everyday app. We believe in leveraging technology to break communication barriers and enrich lives, particularly in underserved communities.
 
-<div align="center">
-  <img src="backend/static/SignSpell AI.jpeg" alt="Me using SignSpell AI" width="500"/>
-  <br>
-  <p><i>A screenshot of me using SignSpell to learn the ASL finger spelling alphabet</i></p>
-</div>
-
-
 ## Key Features
 - **Real-Time Gesture Recognition**: Harness computer vision to decode sign language gestures in real-time, offering immediate feedback.
 - **AI-Powered Adaptive Feedback**: Utilize the intelligence of OpenAI's GPT-4 to provide feedback that adapts to the user's learning pace and style, enhancing understanding and retention.
@@ -69,3 +62,10 @@ For further information, feel free to contact us:
 
 Email: hami.develops@gmail.com
 Project Link: https://github.com/hamidatb/SignSpell-AI
+
+<div align="center">
+  <img src="backend/static/SignSpell AI.jpeg" alt="Me using SignSpell AI" width="500"/>
+  <br>
+  <p><i>A screenshot of me using SignSpell to learn the ASL finger spelling alphabet</i></p>
+</div>
+
