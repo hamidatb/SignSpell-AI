@@ -3,7 +3,8 @@
 ## Welcome to SignSpell-AI
 SignSpell-AI is an advanced web application designed to make learning sign language accessible, engaging, and effective. Utilizing the power of artificial intelligence, this platform offers real-time gesture recognition and personalized feedback through integration with the OpenAI GPT-4 API. My aim is to create an adaptive learning environment where users can not only learn but also practice sign language interactively.
 
-https://github.com/hamidatb/SignSpell-AI/assets/107907514/7a3269b8-8aab-484a-8401-ba0109758585
+https://github.com/hamidatb/SignSpell-AI/assets/107907514/c12ad993-b02e-421f-9bd0-3633ba8e5505
+
 
 ## Project Vision
 My vision is to democratize the learning of sign language, making it as simple and accessible as using any everyday app. We believe in leveraging technology to break communication barriers and enrich lives, particularly in underserved communities.
