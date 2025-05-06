@@ -8,3 +8,11 @@ venv/
 .venv/
 env/
 .env
+.venv
+venv
+
+
+__pycache__
+
+backend/gesture_model/__pycache__
+.backend/gesture_model/__pycache__
